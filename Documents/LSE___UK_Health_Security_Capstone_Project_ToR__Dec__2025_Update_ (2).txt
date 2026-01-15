@@ -1,0 +1,229 @@
+LLM Utility For Selection Of Health
+Policy Papers In Systematic Reviews
+Terms of Reference
+Samuel Bickel-Barlow, Krisha Chandnani, Cyril Estier, Juan
+Gomez-Illingworth, Sofie Wiedemeyer
+London School of Economics & UK Health Security Agency
+October 2025 - March 2026
+
+Terms of Reference LSE & UKHSA
+Goal
+The objective of this project is to analyse the effectiveness of automating the selection
+process for systematic reviews in the field of health policy by using LLMs. The analysis
+will optimise, measure, and report the accuracy of LLMs in accomplishing this task within
+an automated systematic review pipeline.
+Background
+The UK Health Security Agency (UKHSA) (the client) is interested in evaluating the
+accuracy of large language models (LLMs) in screening paper abstracts for inclusion in
+systematic reviews of health policy topics. Systematic reviews attempt to identify, ap-
+praise and synthesise evidence to answer specific research questions. This makes them
+a valuable tool for UKHSA policy analysts seeking a complete and unbiased review of
+relevant evidence to help answer health policy questions. These reviews are normally
+created and updated by volunteer researchers, who follow detailed protocols to increase
+consistency and reduce bias. Volunteers must identify and evaluate hundreds of poten-
+tially relevant papers for inclusion before even commencing a systematic review. This
+labour-intensive process could potentially be automated by LLMs, whose ability to intel-
+ligently handle text data could make them ideally suited to this task, if they can make
+decisions about paper inclusion at least as accurately as human reviewers. This applica-
+tion of LLMs would be hugely valuable as it greatly reduces the time and effort required
+to create systematic reviews, a process that currently takes a year or more. Partial au-
+tomation using LLMs would allow volunteer researchers to produce more reviews covering
+a greater number of research questions. UKHSA experts would therefore have a larger
+corpus of questions with systematically reviewed research to draw from when formulating
+health policy.
+Project Stages
+The LSE team will evaluate the accuracy of several open source LLMs in screening
+abstractsofpapersforinclusioninsystematicreviewsofhealthpolicytopics(theproject).
+In order to achieve this, it will:
+i) Research systematic reviews and review the application of LLMs to similar ques-
+tions.
+ii) Collect and prepare data from Cochrane reviews and relevant papers.
+iii) Develop a data processing pipeline in Python, which calls open-source LLMs to
+select papers for inclusion in systematic reviews providing all necessary context.
+iv) Explore prompt optimisation techniques and test extensions like agents, fine-tuning,
+and automated refinement.
+v) Assess the accuracy of various models and techniques using Cochrane reviews as
+a benchmark, employing metrics including precision, recall, F1 score, agreement
+rates, and Cohen’s Kappa.
+vi) Conduct error analysis to identify patterns in model failures and provide actionable
+recommendations.
+1
+
+Terms of Reference LSE & UKHSA
+vii) Produce a detailed report of our findings, a comprehensive GitHub repository with
+documentation, and an annotated validation dataset for future UKHSA evaluations.
+Roles & Responsibilities
+LSE Team
+The team of MPA in Data Science for Public Policy (DSPP) candidates at the London
+School of Economics and Political Science (LSE) is as follows:
+Name Email Address
+Sam Bickel-Barlow s.c.bickel-barlow@lse.ac.uk
+Krisha Chandnani k.chandnani@lse.ac.uk
+Cyril Estier c.m.estier@lse.ac.uk
+Juan Gomez-Illingworth j.gomez-illingworth@lse.ac.uk
+Sofie Wiedemeyer s.wiedemeyer@lse.ac.uk
+The MPA-DSPP candidates listed above will plan and execute all tasks and produce all
+deliverables outlined in the ToR by the due date.
+The LSE Supervisor for this project is Dr Ryan Hübert (r.hubert@lse.ac.uk). Dr Hübert
+will guide and advise the team, but will not be directly involved in project activities.
+UKHSA Team
+The UKHSA team is as follows:
+Name Email Address
+Becca Dikuyi becca.dikuyi@ukhsa.gov.uk
+Ollie Higgins ollie.higgins@ukhsa.gov.uk
+Toby Nonnenmacher toby.nonnenmacher@ukhsa.gov.uk
+The UKHSA team will set project objectives and expectations. The LSE team will
+schedule meetings with the UKHSA team to update on progress and ask for clarification
+or feedback when needed.
+Communication & Meetings
+The LSE team will maintain regular communication with the UKHSA team throughout
+the project duration. A preliminary meeting schedule includes:
+•Kick-off meeting(04 November 2025): Project initiation, clarification of objec-
+tives and expectations.
+•Progress update meetings(approximately monthly, November 2025 - February
+2026): Updates on data collection, model development, and preliminary findings.
+•Mid-project check-in(January 2026): Review of initial results and adjust ap-
+proach if needed.
+2
+
+Terms of Reference LSE & UKHSA
+•Pre-final review(early March 2026): Present draft findings for feedback.
+•Final presentation(late March 2026): Present completed deliverables.
+Additional ad-hoc meetings may be scheduled as needed for clarification or urgent mat-
+ters. The LSE team will provide written progress updates via email between scheduled
+meetings.
+Data Sources
+Cochrane Database of Systematic Reviews
+CochraneLibraryisoneoftheprimaryorganisationsengagedinthecreationofsystematic
+reviews. Their database includes thousands of high-quality systematic reviews on many
+health-related topics. The large number of high-quality systematic reviews makes the
+Cochrane Database of Systematic Reviews a good candidate for a source of “ground
+truth” in our evaluation of LLMs’ application to the creation of these reviews.
+PubMed Database
+PubMedisadatabasemaintainedbytheU.S.NationalLibraryofMedicine. Itconstitutes
+an index of biomedical literature, compiling citations and abstracts from journals and
+databases, e.g. the Cochrane Database of Systematic Reviews (CDSR). Even though
+PubMed does not provide the full reviews (which are available in the Cochrane Library
+published by Wiley), it appears to include the information we need for this project, and
+there are fewer restrictions concerning how the data can be processed.
+Scope & Limitations
+Project Scope
+The scope of the team’s analysis will focus on the evaluation of LLMs for screening paper
+abstracts for inclusion of papers in systematic reviews of health policy topics. The team
+will not train, test, and evaluate LLMs’ capacity to generate systematic reviews in their
+entirety.
+The team will only use Cochrane systematic reviews with a clear set of inclusion and
+exclusion criteria to create an annotated validation dataset unless otherwise directed by
+the client. The team anticipates using approximately X systematic reviews to create a
+robust validation dataset.
+Technical Constraints
+In conducting data collection and analysis, the team will only use financial resources pro-
+vided by the LSE, including for data subscriptions, tokens for LLM calls, and processing
+power. If this limitation creates significant barriers to the analysis, the team will flag
+them as early as possible with the client.
+3
+
+Terms of Reference LSE & UKHSA
+While the team will evaluate multiple open-source models, rapidly evolving LLM capa-
+bilities mean that newer models may emerge during the project timeline. The team will
+prioritise models that are stable, well-documented, and likely to remain accessible to
+UKHSA post-project.
+Analysis Limitations
+The team will attempt to establish human baseline performance where possible, but ac-
+knowledges that perfect ground truth may not exist given variability in human reviewer
+decisions. Results from this analysis will be based on Cochrane systematic reviews in
+health policy. Performance may vary when applied to other domains or review method-
+ologies.
+Research Ethics & Data Governance
+The team will adhere to the following ethical and data governance principles:
+Data Access & Permissions
+The team has access to the Cochrane systematic reviews’ abstracts and citations through
+PubMed’s API. The information will be obtained and processed in accordance with the
+corresponding terms and conditions.
+Reproducibility & Transparency
+All code and methodologies will be documented in the GitHub repository to ensure
+transparency and enable independent verification of results.
+Deliverables
+At the end of the project, the LSE team will deliver:
+1. A comprehensive GitHub repository containing all project code, documentation,
+and outputs, providing UKHSA with a reproducible and transparent record of the
+methodology. The repository will include:
+(a) All analysis scripts and model implementation code;
+(b) Data processing pipelines;
+(c) Documentation for setup and usage; and,
+(d) The detailed capstone project PDF report.
+2. A detailed capstone project PDF report of findings by 26/03/2026, which will com-
+pare the accuracy of various LLM models and techniques in the inclusion of articles
+for systematic reviews and final recommendations.
+3. An annotated validation data set, which will include systematic reviews and corre-
+sponding true and predicted included and excluded papers.
+4. A slide deck for presenting key findings and conclusions to the client.
+4
+
+Terms of Reference LSE & UKHSA
+Timeline
+The project stages will be executed as follows:
+2025 2026
+Oct Nov Dec Jan Feb Mar
+Research existing literature
+Collect, explore & prepare data
+Develop data processing pipeline in Python
+Test & optimise models
+Assess accuracy
+Conduct error analysis
+Produce report, repository & validation dataset
+The timeline includes buffer periods to accommodate unforeseen technical challenges,
+data access issues, or the need for additional model iterations based on client feedback.
+Key Terms
+Agents –autonomous or semi-autonomous systems built on top of LLMs that can plan,
+reason, and take actions (such as calling tools, browsing data, or writing code) to accom-
+plish user-defined goals without constant human input.
+Agreement Rates –The percentage of times that two models, raters, or processes produce
+the same results or outcomes.
+Agreement Rate= Number of Agreements
+Total Cases
+Annotated Validation Dataset –a curated set of examples labelled or commented on (of-
+ten by humans) that is used to test and evaluate how well a model performs on known,
+verified data without influencing the model’s training process.
+Automated Refinement –a feedback-driven process where model outputs are iteratively
+improved using evaluation metrics, human feedback, or other automated systems to en-
+hance performance and reliability over time.
+5
+
+Terms of Reference LSE & UKHSA
+Cohen’s Kappa -a statistic that gauges agreement among raters for categorical items; it
+adjusts for agreement by chance.
+κ= po −pe
+1−p e
+where:
+•p o is the observed agreement proportion among raters.
+•p e is the expected chance agreement proportion.
+Fine-tuning –the process of further training a pre-trained LLM on a smaller, specialised
+dataset to adapt it for a specific task, domain, or tone, while retaining the broader knowl-
+edge learned during initial training.
+F1 Score –The harmonic mean of the precision and recall metrics, i.e., it penalises con-
+siderable imbalances.
+F1 = 2× Precision×Recall
+Precision+Recall
+Large Language Model (LLM) -a type of artificial intelligence that uses deep learning
+techniques to understand and generate human language.
+Precision –The percentage of correctly predicted positives.
+Precision= TP
+TP+FP
+Prompt Engineering/Optimisation –the practice of designing, refining, and testing in-
+puts (prompts) to an LLM to achieve more accurate, relevant, or efficient responses. It
+involves understanding how model behaviour changes with different instructions or struc-
+tures.
+Recall –The percentage of real positives that were identified correctly.
+Recall= TP
+TP+FN
+Systematic Review –an academic procedure that attempts to create a comprehensive and
+systematic overview by using clearly defined methods of research to answer a particular
+6
+
+Terms of Reference LSE & UKHSA
+question.
+Training –the process by which a machine learning model learns patterns from data.
+During training, the model adjusts its internal parameters to minimise errors when pre-
+dicting or generating outputs based on input data.
+7
