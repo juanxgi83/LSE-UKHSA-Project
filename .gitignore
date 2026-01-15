@@ -1,0 +1,25 @@
+# Ignore data and large files
+data/
+*.csv
+*.tsv
+*.json
+*.parquet
+*.pkl
+*.zip
+*.gz
+
+# Ignore model weights
+*.bin
+*.pt
+*.safetensors
+
+# Ignore notebooks checkpoints
+.ipynb_checkpoints/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore environment files
+.env
+.venv/
