@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Dataset Example - Effectiveness and risks of cricoid pressure during rapid sequence induction for endotracheal intubation.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: transparent;
+        }
+        
+        /* Review Header Section */
+        .review-header {
+            background: linear-gradient(135deg, #2c5f7c 0%, #3d7fa5 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .review-title {
+            font-size: 1.6em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .review-title-icon {
+            font-size: 1.2em;
+        }
+        
+        .review-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .review-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .review-section {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 18px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .review-section-title {
+            font-weight: bold;
+            color: #a8d4e6;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Toggle Buttons */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            gap: 0;
+        }
+        
+        .toggle-btn {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(200, 200, 200, 0.3);
+            color: #555;
+        }
+        
+        .toggle-btn:first-child {
+            border-radius: 25px 0 0 25px;
+        }
+        
+        .toggle-btn:last-child {
+            border-radius: 0 25px 25px 0;
+        }
+        
+        .toggle-btn.active.included {
+            background: #28a745;
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .toggle-btn.active.excluded {
+            background: #dc3545;
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .toggle-btn:hover:not(.active) {
+            background: rgba(150, 150, 150, 0.3);
+        }
+        
+        /* Papers Container */
+        .papers-section {
+            background: transparent;
+        }
+        
+        .papers-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .paper-card {
+            background: rgba(255,255,255,0.98);
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            border-left: 6px solid;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+            position: relative;
+        }
+        
+        .paper-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        
+        .paper-card.included {
+            border-left-color: #28a745;
+        }
+        
+        .paper-card.excluded {
+            border-left-color: #dc3545;
+        }
+        
+        .paper-card.hidden {
+            display: none;
+        }
+        
+        .paper-number {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: white;
+        }
+        
+        .paper-card.included .paper-number {
+            background: #28a745;
+        }
+        
+        .paper-card.excluded .paper-number {
+            background: #dc3545;
+        }
+        
+        .paper-title {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #333;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            padding-right: 10px;
+        }
+        
+        .paper-abstract {
+            font-size: 0.88em;
+            color: #555;
+            line-height: 1.7;
+            text-align: justify;
+        }
+        
+        .paper-pmid {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+        
+        /* Section Label */
+        .section-label {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-label span {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .section-label.included span {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .section-label.excluded span {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #888;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Review Header -->
+        <div class="review-header">
+            <div class="review-title">
+                <span class="review-title-icon">📋</span>
+                <span>Effectiveness and risks of cricoid pressure during rapid sequence induction for endotracheal intubation.</span>
+            </div>
+            <div class="review-meta">
+                <span class="review-badge">PMID: 26578526</span>
+                <span class="review-badge">Cochrane Systematic Review</span>
+                <span class="review-badge">Mistral Accuracy: 60% (Included) | 80% (Excluded)</span>
+            </div>
+            <div class="review-section">
+                <div class="review-section-title">Full Abstract</div>
+                BACKGROUND: Rapid sequence induction (RSI) for endotracheal intubation is a technique widely used in anaesthesia, emergency and intensive care medicine to secure an airway in patients deemed at risk of pulmonary aspiration. Cricoid pressure is conceptually used to reduce the risk of aspiration by compressing the oesophagus. OBJECTIVES: To identify and evaluate all randomized controlled trials (RCTs) involving participants undergoing elective or emergency airway management via RSI and compare participants who have cricoid pressure administered with participants who do not have cricoid pressure administered. SEARCH METHODS: We searched the Cochrane Central Register of Controlled Trials (CENTRAL 2015, Issue 4), MEDLINE via OvidSP (1946 to May 2015), EMBASE via OvidSP (1980 to May 2015), ISI Web of Science (from 1940 to May 2015) and CINAHL via EBSCOhost (1982 to May 2015). SELECTION CRITERIA: We included all RCTs comparing people undergoing RSI who have cricoid pressure applied, either intermittently or continuously, with people undergoing RSI who do not have cricoid pressure applied in the context of endotracheal intubation using a direct laryngoscopic technique. We included both elective and emergency cases. We included studies of blinded and unblinded participants. Participants (male or female) were involved in any type of procedure where general anaesthetic utilizing RSI or emergency airway management utilizing RSI and endotracheal intubation was undertaken. We expected the control arm to be the absence of cricoid pressure at any stage during RSI. The primary outcome of interest was the reported event rate or prevalence of aspiration determined by a) documented gastric aspiration determined by visual inspection of aspirated stomach contents on laryngoscopy; b) pepsin detection in tracheal aspirate using the Ufberg method; c) post-anaesthetic radiographic changes suggestive of aspiration pneumonitis or d) any combination of a to c. Secondary outcomes of interest included documented impaired visualization of the airway by a treating laryngoscopist, force applied during cricoid pressure, the direction of application of force of applied cricoid pressure, independent risk factors for aspiration and whether the person applying cricoid pressure had previously done so in an emergency airway context. DATA COLLECTION AND ANALYSIS: Two review authors independently screened the titles and abstracts of all the studies obtained from the search using recognition of words such as 'cricoid pressure', 'rapid sequence intubation', 'emergency airway management' and 'aspiration'. Two authors independently determined the study inclusion by using a study eligibility form that we developed for the purpose of this review. We also reported the decisions regarding inclusion and exclusion in accordance with the preferred reporting items for systematic reviews and meta-analyses (PRISMA) statement. We assumed that studies that did not describe the use of RSI in their title, abstract or methodology used an alternative method of anaesthetic induction or emergency airway management and thus we excluded them. Data extracted from included studies comprised study characteristics, participant demographics, intervention and comparison details plus outcome measures and results. We contacted primary authors of studies with missing or unreported but potentially relevant data to obtain missing data. MAIN RESULTS: Of 493 records that we identified from databases as a result of the search (excluding duplicates), we regarded 70 abstracts/titles as potentially relevant studies. Independent scrutiny of these 70 titles and abstracts identified 29 potentially relevant studies. Of the 29 potentially relevant studies, one study met the criteria for inclusion. This study was a RCT that compared participants undergoing RSI and endotracheal intubation in the context of elective surgery requiring a general anaesthetic. Forty participants were recruited, 20 of whom had cricoid pressure applied and 20 of whom had cricoid pressure simulated. The main outcomes reported were systolic arterial pressure and heart rate after laryngoscopy and tracheal intubation. We did not consider these outcomes relevant for the purposes of this systematic review. The search also identified one study that could potentially be included in an updated systematic review in the future, but was at the time of the search a proposal for a trial only and had no reported outcomes at this time. AUTHORS' CONCLUSIONS: There is currently no information available from published RCTs on clinically relevant outcome measures with respect to the application of cricoid pressure during RSI in the context of endotracheal intubation. On the basis of the findings of non-RCT literature, however, cricoid pressure may not be necessary to undertake RSI safely, and therefore well-designed and conducted RCTs should nonetheless be encouraged to properly assess the safety and effectiveness of cricoid pressure.
+            </div>
+            <div class="review-section">
+                <div class="review-section-title">Selection Criteria</div>
+                SELECTION CRITERIA: We included all RCTs comparing people undergoing RSI who have cricoid pressure applied, either intermittently or continuously, with people undergoing RSI who do not have cricoid pressure applied in the context of endotracheal intubation using a direct laryngoscopic technique. We included both elective and emergency cases. We included studies of blinded and unblinded participants. Participants (male or female) were involved in any type of procedure where general anaesthetic utilizing RSI or emergency airway management utilizing RSI and endotracheal intubation was undertaken. We expected the control arm to be the absence of cricoid pressure at any stage during RSI. The primary outcome of interest was the reported event rate or prevalence of aspiration determined by a) documented gastric aspiration determined by visual inspection of aspirated stomach contents on laryngoscopy; b) pepsin detection in tracheal aspirate using the Ufberg method; c) post-anaesthetic radiographic changes suggestive of aspiration pneumonitis or d) any combination of a to c. Secondary outcomes of interest included documented impaired visualization of the airway by a treating laryngoscopist, force applied during cricoid pressure, the direction of application of force of applied cricoid pressure, independent risk factors for aspiration and whether the person applying cricoid pressure had previously done so in an emergency airway context.
+            </div>
+        </div>
+        
+        <!-- Toggle Buttons -->
+        <div class="toggle-container">
+            <button class="toggle-btn active included" onclick="showPapers('included')">
+                ✓ Included (5)
+            </button>
+            <button class="toggle-btn excluded" onclick="showPapers('excluded')">
+                ✗ Excluded (5)
+            </button>
+        </div>
+        
+        <!-- Papers Section -->
+        <div class="papers-section">
+            <div class="section-label included" id="section-label-included">
+                <span>Papers Cited in This Review (Passed Screening)</span>
+            </div>
+            <div class="section-label excluded" id="section-label-excluded" style="display:none;">
+                <span>Papers from Related Reviews (Not Cited Here)</span>
+            </div>
+            
+            <div class="papers-grid">
+                
+        <div class="paper-card included" data-label="included">
+            <div class="paper-number">1</div>
+            <div class="paper-title">Challenges and advances in intubation: rapid sequence intubation.</div>
+            <div class="paper-abstract">Rapid sequence intubation is the process involving administration of a sedative (eg, induction agent) followed almost immediately by a neuromuscular blocking agent to facilitate endotracheal intubation The purpose of emergency RSI is to make emergent intubation easier and safer, thereby increasing the success rate of intubation while decreasing the complications. Possible disadvantages are complications from the additional drugs, prolonged intubation with hypoxia, and precipitating an emergent or crash airway. Controversy has arisen regarding various steps in RSI; however, RSI remains the standard of care in emergency medicine airway management.</div>
+            <div class="paper-pmid">PMID: 19059100</div>
+        </div>
+        
+        <div class="paper-card included" data-label="included">
+            <div class="paper-number">2</div>
+            <div class="paper-title">Estimation of a common effect parameter from sparse follow-up data.</div>
+            <div class="paper-abstract">Breslow (1981, Biometrika 68, 73-84) has shown that the Mantel-Haenszel odds ratio is a consistent estimator of a common odds ratio in sparse stratifications. For cohort studies, however, estimation of a common risk ratio or risk difference can be of greater interest. Under a binomial sparse-data model, the Mantel-Haenszel risk ratio and risk difference estimators are consistent in sparse stratifications, while the maximum likelihood and weighted least squares estimators are biased. Under Poisson sparse-data models, the Mantel-Haenszel and maximum likelihood rate ratio estimators have equal asymptotic variances under the null hypothesis and are consistent, while the weighted least squares estimators are again biased; similarly, of the common rate difference estimators the weighted least squares estimators are biased, while the estimator employing "Mantel-Haenszel" weights is consistent in sparse data. Variance estimators that are consistent in both sparse data and large strata can be derived for all the Mantel-Haenszel estimators.</div>
+            <div class="paper-pmid">PMID: 4005387</div>
+        </div>
+        
+        <div class="paper-card included" data-label="included">
+            <div class="paper-number">3</div>
+            <div class="paper-title">Cricoid pressure decreases ease of tracheal intubation using fibreoptic laryngoscopy (WuScope System.</div>
+            <div class="paper-abstract">PURPOSE: Cricoid pressure is commonly used during rapid sequence induction and intubation to minimize the risk of aspiration. The objective of the study was to evaluate the ease of fibreoptic (WuScope System(TM)) intubation in anesthetized adults receiving cricoid pressure. METHODS: The intubation difficulty scale (IDS) was used to measure tracheal intubation difficulties in 33 patients undergoing elective surgery with general anesthesia and complete neuromuscular blockade. Each patient had their trachea intubated under two conditions: with and without cricoid pressure. The order of conditions was determined randomly. Cricoid pressure was applied by an experienced anesthesia provider. MAIN RESULTS: An IDS value of 0 (ideal intubation, that is one performed by the first operator on the first attempt, using the first technique with full visualization of the glottis and no vocal cord compression) occurred in 30 of 33 patients (91%) without cricoid pressure and in 22 of 33 patients (67%) with cricoid pressure (P < 0.05). Cricoid pressure compressed the vocal cords in nine patients (27%) and impeded tracheal tube placement in five (15%). In three patients (9%), pressure had to be released in order to successfully intubate. CONCLUSION: Cricoid pressure may impede or even prevent fibreoptic laryngoscopic intubation with the WuScope System(TM).</div>
+            <div class="paper-pmid">PMID: 12067876</div>
+        </div>
+        
+        <div class="paper-card included" data-label="included">
+            <div class="paper-number">4</div>
+            <div class="paper-title">Meta-analysis in clinical trials.</div>
+            <div class="paper-abstract">This paper examines eight published reviews each reporting results from several related trials. Each review pools the results from the relevant trials in order to evaluate the efficacy of a certain treatment for a specified medical condition. These reviews lack consistent assessment of homogeneity of treatment effect before pooling. We discuss a random effects approach to combining evidence from a series of experiments comparing two treatments. This approach incorporates the heterogeneity of effects in the analysis of the overall treatment efficacy. The model can be extended to include relevant covariates which would reduce the heterogeneity and allow for more specific therapeutic recommendations. We suggest a simple noniterative procedure for characterizing the distribution of treatment effects in a series of studies.</div>
+            <div class="paper-pmid">PMID: 3802833</div>
+        </div>
+        
+        <div class="paper-card included" data-label="included">
+            <div class="paper-number">5</div>
+            <div class="paper-title">Airway obstruction with cricoid pressure.</div>
+            <div class="paper-abstract">Cricoid pressure may cause airway obstruction. We investigated whether this is related to the force applied and to the technique of application. We recorded expired tidal volumes and inflation pressures during ventilation via a face-mask and oral airway in 52 female patients who were anaesthetised and about to undergo elective surgery. An inspired tidal volume of 900 ml was delivered using a ventilator. Ventilation was assessed under five different conditions: no cricoid pressure, backwards cricoid pressure applied with a force of 30 N, cricoid pressure applied in an upward and backward direction with a force of 30 N, backwards cricoid pressure with a force of 44 N and through a tracheal tube. An expired tidal volume of < 200 ml was taken to indicate airway obstruction. Airway obstruction did not occur without cricoid pressure, but did occur in one patient (2%) with cricoid pressure at 30 N, in 29 patients (56%) with 30 N applied in an upward and backward direction and in 18 (35%) patients with cricoid pressure at 44 N. Cricoid pressure applied with a force of 44 N can cause airway obstruction but if cricoid pressure is applied with a force of 30 N, airway obstruction occurs less frequently (p = 0.0001) unless the force is applied in an upward and backward direction.</div>
+            <div class="paper-pmid">PMID: 10671836</div>
+        </div>
+        
+                
+        <div class="paper-card excluded" data-label="excluded">
+            <div class="paper-number">1</div>
+            <div class="paper-title">Cisplatin, vinblastine, and bleomycin combination chemotherapy in metastatic granulosa cell tumor of the ovary.</div>
+            <div class="paper-abstract">Eleven previously untreated women with recurrent and/or metastatic granulosa cell tumor of the ovary were treated with cisplatin, vinblastine, and bleomycin in combination. All the six pathological complete responders but one are alive and free of disease at a median follow-up time of 14 months from the start of treatment. Of three partial responders, two died of drug-related toxicity while one, with only microscopic disease at second-look laparotomy, is alive and without evidence of disease at 34 months. Hematologic and nonhematologic toxicity were severe. These promising results require further examination of the activity and the best schedule of treatment with this combination.</div>
+            <div class="paper-pmid">PMID: 2418394</div>
+        </div>
+        
+        <div class="paper-card excluded" data-label="excluded">
+            <div class="paper-number">2</div>
+            <div class="paper-title">Efficiency and Efficacy of Two Techniques of Preoxygenation during Modified Rapid Sequence Intubation.</div>
+            <div class="paper-abstract">BACKGROUND: Apneic mass movement of oxygen by applying continuous positive airway pressure (CPAP) is possible only when the airway is kept patent which helps to reduce the rate of desaturation. AIMS: The aim of this study was to check the efficiency of preoxygenation and apneic oxygenation by assessing the drop in partial pressure of arterial oxygen (PaO(2)) during apnea with and without keeping an oropharyngeal airway to maintain the patency of airway. SETTINGS AND DESIGN: This prospective observational study was conducted at a tertiary care center. MATERIALS AND METHODS: Sixty patients undergoing robotic and laparoscopic-assisted surgeries requiring modified rapid sequence intubation were recruited for the study. In Group A, CPAP was not applied during preoxygenation and oropharyngeal airway was not used, but oxygen was administered at 5 L/min during the apnea. In Group B, CPAP of 5 cmH(2)O was maintained during preoxygenation and after induction an oropharyngeal airway was inserted. Patients in both the groups were induced and paralyzed following standardized anesthesia protocol. STATISTICAL ANALYSIS USED: Chi-square test, independent t-test, and ANCOVA were used as applicable. RESULTS: Group B showed significantly higher mean PaO(2) levels after preoxygenation (525.3 +/- 42.5 vs. 500.8 +/- 51) and at 90 s of apnea (494.8 +/- 42.6 vs. 368.6 +/- 98.4) as compared to Group A. The fall in PaO(2) was significantly lower in Group B. The rise in partial pressure of arterial carbon dioxide was comparable in both groups. CONCLUSION: Preoxygenation with CPAP of 5 cmH(2)O followed by apneic oxygenation with CPAP keeping the airway patent with an oropharyngeal airway results in significantly higher PaO(2) after preoxygenation and slower reduction in PaO(2) during apnea.</div>
+            <div class="paper-pmid">PMID: 30283189</div>
+        </div>
+        
+        <div class="paper-card excluded" data-label="excluded">
+            <div class="paper-number">3</div>
+            <div class="paper-title">Behavioral and psychosocial effects of intensive lifestyle management for women with coronary heart disease.</div>
+            <div class="paper-abstract">Females, especially older women, historically have been excluded from coronary heart disease (CHD) studies. The PrimeTime program was a randomized clinical trial designed to study the effects of a comprehensive lifestyle management program (very low-fat vegetarian diet, smoking cessation, stress-management training, moderate exercise, and group support) on changes in behavioral risk factors among postmenopausal women with CHD. The study also explored program effects on four psychosocial clusters: coping with stress, distress, social support, and self-efficacy. The program produced significant behavioral improvements in 4- and 12-months adherence to diet, physical activity, and stress-management in the PrimeTime women compared to the Usual Care (UC) group. In addition, the PrimeTime participants demonstrated improvements relative to UC on psychosocial measures of self-efficacy, perceived social support, and ability to cope with stress. Strengths and weaknesses of the study, and implications for future research are discussed.</div>
+            <div class="paper-pmid">PMID: 9887850</div>
+        </div>
+        
+        <div class="paper-card excluded" data-label="excluded">
+            <div class="paper-number">4</div>
+            <div class="paper-title">Getting under the skin: the immunopathogenesis of Streptococcus pyogenes deep tissue infections.</div>
+            <div class="paper-abstract">Streptococcus pyogenes can cause a variety of diseases in immunocompetent individuals, from pharyngotonsillitis to life-threatening invasive diseases, such as streptococcal toxic shock syndrome, and rapidly progressing deep-tissue infections, such as necrotizing fasciitis. Necrotizing fasciitis is often seen in combination with streptococcal toxic shock syndrome, which further increases morbidity and mortality. We review here the host-pathogen interactions in the tissue milieu and discuss the use of intravenous immunoglobulin as potential adjunctive therapy in these life-threatening infections.</div>
+            <div class="paper-pmid">PMID: 20491545</div>
+        </div>
+        
+        <div class="paper-card excluded" data-label="excluded">
+            <div class="paper-number">5</div>
+            <div class="paper-title">Cervical conization complicated by sepsis with lung and liver abscesses.</div>
+            <div class="paper-abstract">BACKGROUND: Extrapelvic infections complicating cervical conization are exceedingly rare. CASE: Seven days after conization, a 44-year-old patient presented with fever and right upper quadrant pain. Pleural effusion and pulmonary and hepatic abscesses were detected. The pathology report of the conization showed microabscesses. Blood cultures grew Fusobacterium necrophorum. Intravenous antibiotics were administered. The pulmonary findings improved but did not completely resolve after drainage of pleural effusions. The patient refused further procedures and was discharged in good clinical condition and with oral antibiotics after 37 days. CONCLUSIONS: Extrapelvic abscesses are rare complications of cervical conization. This is the first report in identifying F. necrophorum as a cause of this complication. Appropriate cultures, drainage of abscesses, and antibiotics are the mainstay of diagnosis and treatment.</div>
+            <div class="paper-pmid">PMID: 20354422</div>
+        </div>
+        
+            </div>
+        </div>
+        
+        <div class="footer">
+            LSE-UKHSA Systematic Review Screening Project | Validation Dataset Example
+        </div>
+    </div>
+    
+    <script>
+        // Initialize - hide excluded papers
+        document.addEventListener('DOMContentLoaded', function() {
+            showPapers('included');
+        });
+        
+        function showPapers(label) {
+            // Update toggle buttons
+            const buttons = document.querySelectorAll('.toggle-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(label)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update section labels
+            document.getElementById('section-label-included').style.display = label === 'included' ? 'block' : 'none';
+            document.getElementById('section-label-excluded').style.display = label === 'excluded' ? 'block' : 'none';
+            
+            // Show/hide papers
+            const papers = document.querySelectorAll('.paper-card');
+            papers.forEach(paper => {
+                if (paper.dataset.label === label) {
+                    paper.classList.remove('hidden');
+                } else {
+                    paper.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
