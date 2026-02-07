@@ -1,5 +1,6 @@
 # Ignore data and large files
 data/
+Data/
 *.csv
 *.tsv
 *.json
@@ -7,6 +8,13 @@ data/
 *.pkl
 *.zip
 *.gz
+
+# Ignore PDFs (proprietary Cochrane content)
+*.pdf
+cochrane_pdfs/
+
+# Ignore proprietary documents
+Documents/
 
 # Ignore model weights
 *.bin
@@ -23,3 +31,11 @@ __pycache__/
 # Ignore environment files
 .env
 .venv/
+
+# Ignore HTML exports
+*.html
+
+# Ignore image exports
+*.png
+*.jpg
+*.jpeg
