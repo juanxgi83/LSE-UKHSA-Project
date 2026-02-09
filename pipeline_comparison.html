@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSE-UKHSA Pipeline Evolution</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .diagram-container {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .diagram-wrapper {
+            display: none;
+        }
+        .diagram-wrapper.active {
+            display: block;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .nav-arrow {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5DADE2 0%, #3498db 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(93, 173, 226, 0.4);
+        }
+        .nav-arrow:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(93, 173, 226, 0.6);
+        }
+        .nav-arrow:active {
+            transform: scale(0.95);
+        }
+        .nav-arrow svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        .nav-arrow:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .nav-arrow:disabled:hover {
+            transform: none;
+        }
+        .version-indicator {
+            text-align: center;
+        }
+        .version-badge {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        .version-old {
+            background: #ffeaa7;
+            color: #b7950b;
+        }
+        .version-new {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+        .diagram-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 15px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .comparison-note {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        .comparison-note h3 {
+            color: #2C3E50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .comparison-note ul {
+            margin-left: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+        .comparison-note li {
+            margin-bottom: 5px;
+        }
+        .highlight {
+            color: #27ae60;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-container">
+            <button class="nav-arrow" id="prevBtn" onclick="navigate(-1)">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+            <div class="version-indicator">
+                <span class="version-badge version-old" id="versionBadge">Original Pipeline (v1)</span>
+            </div>
+            <button class="nav-arrow" id="nextBtn" onclick="navigate(1)">
+                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+        </div>
+        
+        <div class="diagram-container">
+            <div class="diagram-wrapper active" id="diagram-0">
+                <div class="diagram-title">Original Pipeline - Simpler Architecture (4 Notebooks)</div>
+                <div id="old-pipeline"></div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color" style="background: #5DADE2;"></div> APIs / Data Sources</div>
+                    <div class="legend-item"><div class="legend-color" style="background: #808B96;"></div> Processing Notebooks</div>
+                    <div class="legend-item"><div class="legend-color" style="background: #F4D03F;"></div> Output Data Files</div>
+                </div>
+            </div>
+            
+            <div class="diagram-wrapper" id="diagram-1">
+                <div class="diagram-title">Enhanced Pipeline - Full Architecture (6 Notebooks)</div>
+                <div id="new-pipeline"></div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color" style="background: #5DADE2;"></div> Sources / APIs / Applications</div>
+                    <div class="legend-item"><div class="legend-color" style="background: #808B96;"></div> Processing Notebooks</div>
+                    <div class="legend-item"><div class="legend-color" style="background: #F4D03F;"></div> Output Data Files</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison-note">
+            <h3>Key Differences Between Versions</h3>
+            <ul>
+                <li><span class="highlight">PDF Processing:</span> New pipeline adds dedicated PDF download (Wiley TDM API) and reference extraction (PyMuPDF) stages</li>
+                <li><span class="highlight">Reference Matching:</span> Enhanced pipeline uses CrossRef API for bibliographic matching, dramatically improving match rates</li>
+                <li><span class="highlight">Data Volume:</span> Original: ~1,000 validation records → Enhanced: <span class="highlight">4,089</span> validation records (Public Health subset)</li>
+                <li><span class="highlight">Notebooks:</span> 4 notebooks → 6 notebooks with clearer separation of concerns</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentDiagram = 0;
+        const totalDiagrams = 2;
+        
+        function navigate(direction) {
+            currentDiagram += direction;
+            if (currentDiagram < 0) currentDiagram = 0;
+            if (currentDiagram >= totalDiagrams) currentDiagram = totalDiagrams - 1;
+            
+            // Update visibility
+            document.querySelectorAll('.diagram-wrapper').forEach((el, i) => {
+                el.classList.toggle('active', i === currentDiagram);
+            });
+            
+            // Update badge
+            const badge = document.getElementById('versionBadge');
+            if (currentDiagram === 0) {
+                badge.textContent = 'Original Pipeline (v1)';
+                badge.className = 'version-badge version-old';
+            } else {
+                badge.textContent = 'Enhanced Pipeline (v2)';
+                badge.className = 'version-badge version-new';
+            }
+            
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentDiagram === 0;
+            document.getElementById('nextBtn').disabled = currentDiagram === totalDiagrams - 1;
+        }
+        
+        // Initialize button states
+        navigate(0);
+        
+        // =====================================================
+        // OLD PIPELINE (Original horizontal swim-lane layout)
+        // =====================================================
+        function createOldPipeline() {
+            const shapes = [];
+            const annotations = [];
+            
+            const API_COLOR = '#5DADE2';
+            const NB_COLOR = '#808B96';
+            const OUT_COLOR = '#F4D03F';
+            const ARROW_COLOR = '#E74C3C';
+            const DARK = '#2C3E50';
+            
+            // Row positions (y)
+            const API_Y = 2.8;
+            const NB_Y = 1.8;
+            const OUT_Y = 0.6;
+            
+            // Background swim lanes
+            shapes.push({
+                type: 'rect', x0: 0, y0: 2.4, x1: 10, y1: 3.2,
+                fillcolor: 'rgba(173, 216, 230, 0.3)', line: {width: 0}, layer: 'below'
+            });
+            shapes.push({
+                type: 'rect', x0: 0, y0: 1.4, x1: 10, y1: 2.2,
+                fillcolor: 'rgba(200, 200, 200, 0.2)', line: {width: 0}, layer: 'below'
+            });
+            shapes.push({
+                type: 'rect', x0: 0, y0: 0.2, x1: 10, y1: 1.2,
+                fillcolor: 'rgba(255, 235, 153, 0.4)', line: {width: 0}, layer: 'below'
+            });
+            
+            // Dashed horizontal dividers
+            shapes.push({
+                type: 'line', x0: 0, y0: 2.4, x1: 10, y1: 2.4,
+                line: {color: '#aaa', width: 1, dash: 'dash'}
+            });
+            shapes.push({
+                type: 'line', x0: 0, y0: 1.4, x1: 10, y1: 1.4,
+                line: {color: '#aaa', width: 1, dash: 'dash'}
+            });
+            
+            // Row labels
+            annotations.push({x: 0.3, y: API_Y, text: '<b>APIs</b>', showarrow: false, 
+                font: {size: 11, color: API_COLOR}, textangle: -90});
+            annotations.push({x: 0.3, y: NB_Y, text: '<b>Notebooks</b>', showarrow: false, 
+                font: {size: 11, color: NB_COLOR}, textangle: -90});
+            annotations.push({x: 0.3, y: OUT_Y, text: '<b>Outputs</b>', showarrow: false, 
+                font: {size: 11, color: '#B7950B'}, textangle: -90});
+            
+            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=9) {
+                shapes.push({
+                    type: 'rect', x0: x-w/2, y0: y-h/2, x1: x+w/2, y1: y+h/2,
+                    fillcolor: color, line: {color: DARK, width: 1.5}, layer: 'below'
+                });
+                annotations.push({x: x, y: y, text: text, showarrow: false, 
+                    font: {size: fontSize, color: fontColor}, align: 'center'});
+            }
+            
+            function addArrow(x0, y0, x1, y1, color=ARROW_COLOR, dash=null) {
+                annotations.push({
+                    x: x1, y: y1, ax: x0, ay: y0,
+                    xref: 'x', yref: 'y', axref: 'x', ayref: 'y',
+                    showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 1.5, arrowcolor: color
+                });
+            }
+            
+            // APIs row
+            addBox(1.5, API_Y, 1.4, 0.5, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 8);
+            addBox(5, API_Y, 1.4, 0.5, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 8);
+            addBox(8.5, API_Y, 1.4, 0.5, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 8);
+            
+            // Notebooks row
+            addBox(1.5, NB_Y, 1.8, 0.5, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 8);
+            addBox(4, NB_Y, 1.8, 0.5, '02_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 8);
+            addBox(6.5, NB_Y, 1.6, 0.5, '03_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 8);
+            addBox(8.5, NB_Y, 1.5, 0.5, '04_llm<br>_evaluation.ipynb', NB_COLOR, 'white', 8);
+            
+            // Outputs row
+            addBox(1.2, OUT_Y, 1.6, 0.5, 'cochrane_pubmed<br>_abstracts.csv<br>(17,092 reviews)', OUT_COLOR, DARK, 7);
+            addBox(3, OUT_Y, 1.6, 0.5, 'cochrane_pubmed<br>_references.csv<br>(1,182,678 edges)', OUT_COLOR, DARK, 7);
+            addBox(5, OUT_Y, 1.6, 0.5, 'referenced_paper<br>_abstracts.csv<br>(491,529 papers)', OUT_COLOR, DARK, 7);
+            addBox(7, OUT_Y, 1.6, 0.5, 'ground_truth<br>_validation_set.csv<br>(100 reviews -<br>1,000 records)', OUT_COLOR, DARK, 7);
+            addBox(9, OUT_Y, 1.3, 0.5, 'results/eval_*.csv', OUT_COLOR, DARK, 8);
+            
+            // Arrows: API → Notebooks
+            addArrow(1.5, API_Y-0.25, 1.5, NB_Y+0.25, DARK);
+            addArrow(5, API_Y-0.25, 4, NB_Y+0.25, DARK);
+            addArrow(8.5, API_Y-0.25, 8.5, NB_Y+0.25, DARK);
+            
+            // Arrows: Notebooks → Outputs
+            addArrow(1.5, NB_Y-0.25, 1.2, OUT_Y+0.25);
+            addArrow(1.5, NB_Y-0.25, 3, OUT_Y+0.25);  // dashed in original
+            addArrow(4, NB_Y-0.25, 5, OUT_Y+0.25);
+            addArrow(6.5, NB_Y-0.25, 7, OUT_Y+0.25);
+            addArrow(8.5, NB_Y-0.25, 9, OUT_Y+0.25);
+            
+            // Horizontal arrows between outputs
+            addArrow(2, OUT_Y, 2.2, OUT_Y);
+            addArrow(3.8, OUT_Y, 4.2, OUT_Y);
+            addArrow(5.8, OUT_Y, 6.2, OUT_Y);
+            
+            const layout = {
+                xaxis: {range: [0, 10], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                yaxis: {range: [0, 3.5], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                shapes: shapes,
+                annotations: annotations,
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                width: 950,
+                height: 500,
+                margin: {l: 10, r: 10, t: 20, b: 10}
+            };
+            
+            Plotly.newPlot('old-pipeline', [], layout, {displayModeBar: false});
+        }
+        
+        // =====================================================
+        // NEW PIPELINE (Staggered diagonal layout)
+        // =====================================================
+        function createNewPipeline() {
+            const shapes = [];
+            const annotations = [];
+            
+            const API_COLOR = '#5DADE2';
+            const NB_COLOR = '#808B96';
+            const OUT_COLOR = '#F4D03F';
+            const ARROW_COLOR = '#E74C3C';
+            const DARK = '#2C3E50';
+            
+            // Background regions
+            shapes.push({
+                type: 'rect', x0: 0, y0: 8.5, x1: 11.5, y1: 10.2,
+                fillcolor: 'rgba(173, 216, 230, 0.3)', line: {width: 0}, layer: 'below'
+            });
+            shapes.push({
+                type: 'rect', x0: 9.5, y0: 0, x1: 11.5, y1: 8.5,
+                fillcolor: 'rgba(255, 235, 153, 0.4)', line: {width: 0}, layer: 'below'
+            });
+            
+            // Section labels
+            annotations.push({x: 5.75, y: 9.9, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
+                font: {size: 13, color: API_COLOR}});
+            annotations.push({x: 10.5, y: 8.2, text: '<b>Outputs</b>', showarrow: false,
+                font: {size: 13, color: '#B7950B'}});
+            annotations.push({x: 4.5, y: 7.8, text: '<b>Notebooks</b>', showarrow: false,
+                font: {size: 13, color: NB_COLOR}});
+            
+            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=10) {
+                shapes.push({
+                    type: 'rect', x0: x-w/2, y0: y-h/2, x1: x+w/2, y1: y+h/2,
+                    fillcolor: color, line: {color: DARK, width: 1.5}, layer: 'below'
+                });
+                annotations.push({x: x, y: y, text: text, showarrow: false,
+                    font: {size: fontSize, color: fontColor}, align: 'center'});
+            }
+            
+            function addArrow(x0, y0, x1, y1, color=ARROW_COLOR) {
+                annotations.push({
+                    x: x1, y: y1, ax: x0, ay: y0,
+                    xref: 'x', yref: 'y', axref: 'x', ayref: 'y',
+                    showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 1.5, arrowcolor: color
+                });
+            }
+            
+            // APIs (top row)
+            addBox(1.5, 9.3, 1.6, 0.7, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 9);
+            addBox(3.5, 9.3, 1.6, 0.7, 'Wiley TDM<br>API', API_COLOR, 'white', 9);
+            addBox(5.5, 9.3, 1.6, 0.7, 'CrossRef<br>API', API_COLOR, 'white', 9);
+            addBox(7.5, 9.3, 1.6, 0.7, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 9);
+            addBox(9.5, 9.3, 1.6, 0.7, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 9);
+            
+            // Notebooks (staggered diagonal)
+            addBox(2.5, 7.2, 2.2, 0.8, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 9);
+            addBox(4, 5.8, 2.2, 0.8, '02_fetch_cochrane<br>_pdfs.ipynb', NB_COLOR, 'white', 9);
+            addBox(5.5, 4.4, 2.4, 0.8, '03_extract_metadata<br>_and_references.ipynb', NB_COLOR, 'white', 8);
+            addBox(7, 3, 2.4, 0.8, '04_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 9);
+            addBox(5.5, 1.6, 2.2, 0.8, '05_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 9);
+            addBox(8, 0.4, 2, 0.7, '06_evaluate<br>_llms.ipynb', NB_COLOR, 'white', 9);
+            
+            // Outputs (right column)
+            addBox(10.5, 7.2, 1.8, 0.7, 'cochrane_pubmed<br>_abstracts.csv<br>(17,298 reviews)', OUT_COLOR, DARK, 8);
+            addBox(10.5, 5.8, 1.8, 0.7, 'cochrane_pdfs/<br>(16,588 PDFs)', OUT_COLOR, DARK, 8);
+            addBox(10.5, 4.4, 1.8, 0.7, 'categorized<br>_references.csv<br>(629K refs)', OUT_COLOR, DARK, 8);
+            addBox(10.5, 3, 1.8, 0.7, 'referenced_paper<br>_abstracts.csv<br>(47,518 papers)', OUT_COLOR, DARK, 8);
+            addBox(10.5, 1.6, 1.8, 0.7, 'ground_truth<br>_validation.csv<br>(4,089 records)', OUT_COLOR, DARK, 8);
+            addBox(10.5, 0.4, 1.8, 0.6, 'results/eval_*.csv', OUT_COLOR, DARK, 9);
+            
+            // Arrows: APIs → Notebooks
+            addArrow(1.5, 8.95, 2.5, 7.6, DARK);
+            addArrow(3.5, 8.95, 4, 6.2, DARK);
+            addArrow(5.5, 8.95, 7, 3.4, DARK);
+            addArrow(7.5, 8.95, 7, 3.4, DARK);
+            addArrow(9.5, 8.95, 8, 0.75, DARK);
+            
+            // Arrows: Notebooks → Outputs
+            addArrow(3.6, 7.2, 9.6, 7.2);
+            addArrow(5.1, 5.8, 9.6, 5.8);
+            addArrow(6.7, 4.4, 9.6, 4.4);
+            addArrow(8.2, 3, 9.6, 3);
+            addArrow(6.6, 1.6, 9.6, 1.6);
+            addArrow(9, 0.4, 9.6, 0.4);
+            
+            // Arrows: Notebook flow (diagonal)
+            addArrow(3.6, 7.0, 4, 6.2);
+            addArrow(5.1, 5.6, 5.5, 4.8);
+            addArrow(6.7, 4.2, 7, 3.4);
+            addArrow(7, 2.6, 5.5, 2);
+            addArrow(6.6, 1.4, 8, 0.75);
+            
+            const layout = {
+                xaxis: {range: [0, 12], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                yaxis: {range: [-0.3, 10.5], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                shapes: shapes,
+                annotations: annotations,
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                width: 950,
+                height: 700,
+                margin: {l: 10, r: 10, t: 20, b: 10}
+            };
+            
+            Plotly.newPlot('new-pipeline', [], layout, {displayModeBar: false});
+        }
+        
+        // Initialize both diagrams
+        createOldPipeline();
+        createNewPipeline();
+    </script>
+</body>
+</html>
