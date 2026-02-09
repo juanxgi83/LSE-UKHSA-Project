@@ -49,7 +49,7 @@
             display: block;
         }
         #new-pipeline {
-            min-height: 900px;
+            min-height: 950px;
         }
         .nav-container {
             display: flex;
@@ -372,7 +372,7 @@
             
             // Background regions - taller, centered
             shapes.push({
-                type: 'rect', x0: 1, y0: 13, x1: 14, y1: 15,
+                type: 'rect', x0: 1, y0: 13, x1: 14, y1: 15.8,
                 fillcolor: 'rgba(173, 216, 230, 0.3)', line: {width: 0}, layer: 'below'
             });
             shapes.push({
@@ -381,7 +381,7 @@
             });
             
             // Section labels
-            annotations.push({x: 7.5, y: 14.6, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
+            annotations.push({x: 7.5, y: 15.3, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
                 font: {size: 15, color: API_COLOR}});
             annotations.push({x: 12.5, y: 12.5, text: '<b>Outputs</b>', showarrow: false,
                 font: {size: 15, color: '#B7950B'}});
@@ -441,7 +441,7 @@
             addArrow(8.1, 7, 11.2, 7);        // 03 → refs
             addArrow(10.1, 5, 11.2, 5);       // 04 → papers
             addArrow(8, 3, 11.2, 3);          // 05 → GT
-            addArrow(11.3, 1.5, 11.2, 1.5);   // 06 → eval results
+            addArrow(11.2, 1.5, 11.3, 1.5);   // 06 → eval results
             
             // Arrows: Notebook flow (diagonal)
             addArrow(3.4, 10.4, 3.9, 9.6);    // 00 → 02
@@ -452,14 +452,14 @@
             
             const layout = {
                 xaxis: {range: [0, 15], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
-                yaxis: {range: [0, 16], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                yaxis: {range: [0, 16.5], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
                 shapes: shapes,
                 annotations: annotations,
                 plot_bgcolor: 'white',
                 paper_bgcolor: 'white',
                 autosize: false,
                 width: 1200,
-                height: 900,
+                height: 950,
                 margin: {l: 20, r: 20, t: 20, b: 20}
             };
             
