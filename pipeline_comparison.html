@@ -48,6 +48,9 @@
         .diagram-wrapper.active {
             display: block;
         }
+        #new-pipeline {
+            min-height: 900px;
+        }
         .nav-container {
             display: flex;
             justify-content: center;
@@ -454,8 +457,10 @@
                 annotations: annotations,
                 plot_bgcolor: 'white',
                 paper_bgcolor: 'white',
-                autosize: true,
-                margin: {l: 5, r: 5, t: 5, b: 5}
+                autosize: false,
+                width: 1200,
+                height: 900,
+                margin: {l: 20, r: 20, t: 20, b: 20}
             };
             
             Plotly.newPlot('new-pipeline', [], layout, {displayModeBar: false, responsive: true});
