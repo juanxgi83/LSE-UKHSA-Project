@@ -355,7 +355,7 @@
         }
         
         // =====================================================
-        // NEW PIPELINE (Clean vertical alignment)
+        // NEW PIPELINE - EXPANDED LAYOUT
         // =====================================================
         function createNewPipeline() {
             const shapes = [];
@@ -367,25 +367,25 @@
             const ARROW_COLOR = '#E74C3C';
             const DARK = '#2C3E50';
             
-            // Background regions
+            // Background regions - expanded
             shapes.push({
-                type: 'rect', x0: 0.3, y0: 8.3, x1: 9.7, y1: 9.7,
+                type: 'rect', x0: 0.5, y0: 8.5, x1: 14.5, y1: 10.0,
                 fillcolor: 'rgba(173, 216, 230, 0.3)', line: {width: 0}, layer: 'below'
             });
             shapes.push({
-                type: 'rect', x0: 7.4, y0: 0.1, x1: 9.7, y1: 8.3,
+                type: 'rect', x0: 11.5, y0: 0.2, x1: 14.5, y1: 8.5,
                 fillcolor: 'rgba(255, 235, 153, 0.4)', line: {width: 0}, layer: 'below'
             });
             
             // Section labels
-            annotations.push({x: 5.0, y: 9.5, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
-                font: {size: 13, color: API_COLOR}});
-            annotations.push({x: 8.5, y: 8.0, text: '<b>Outputs</b>', showarrow: false,
-                font: {size: 13, color: '#B7950B'}});
-            annotations.push({x: 3.5, y: 7.7, text: '<b>Notebooks</b>', showarrow: false,
-                font: {size: 13, color: NB_COLOR}});
+            annotations.push({x: 7.5, y: 9.7, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
+                font: {size: 15, color: API_COLOR}});
+            annotations.push({x: 13.0, y: 8.2, text: '<b>Outputs</b>', showarrow: false,
+                font: {size: 15, color: '#B7950B'}});
+            annotations.push({x: 5.0, y: 7.8, text: '<b>Notebooks</b>', showarrow: false,
+                font: {size: 15, color: NB_COLOR}});
             
-            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=11) {
+            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=12) {
                 shapes.push({
                     type: 'rect', x0: x-w/2, y0: y-h/2, x1: x+w/2, y1: y+h/2,
                     fillcolor: color, line: {color: DARK, width: 1.5}, layer: 'below'
@@ -398,58 +398,58 @@
                 annotations.push({
                     x: x1, y: y1, ax: x0, ay: y0,
                     xref: 'x', yref: 'y', axref: 'x', ayref: 'y',
-                    showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 1.5, arrowcolor: color
+                    showarrow: true, arrowhead: 2, arrowsize: 1.2, arrowwidth: 2, arrowcolor: color
                 });
             }
             
-            // APIs (top row)
-            addBox(1.5, 9.0, 1.4, 0.6, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 9);
-            addBox(3.2, 9.0, 1.4, 0.6, 'Wiley TDM<br>API', API_COLOR, 'white', 9);
-            addBox(5.0, 9.0, 1.2, 0.6, 'CrossRef<br>API', API_COLOR, 'white', 9);
-            addBox(6.5, 9.0, 1.4, 0.6, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 9);
-            addBox(8.5, 9.0, 1.2, 0.6, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 9);
+            // APIs (top row) - spread across full width
+            addBox(1.5, 9.2, 2.0, 0.8, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
+            addBox(4.5, 9.2, 2.0, 0.8, 'Wiley TDM<br>API', API_COLOR, 'white', 11);
+            addBox(7.5, 9.2, 1.8, 0.8, 'CrossRef<br>API', API_COLOR, 'white', 11);
+            addBox(10.5, 9.2, 2.0, 0.8, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
+            addBox(13.5, 9.2, 1.8, 0.8, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 11);
             
-            // Notebooks - staggered diagonal, 05 and 06 at DIFFERENT levels
-            addBox(1.5, 7.0, 2.0, 0.7, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 9);
-            addBox(3.2, 5.6, 2.0, 0.7, '02_fetch_cochrane<br>_pdfs.ipynb', NB_COLOR, 'white', 9);
-            addBox(4.2, 4.2, 2.2, 0.7, '03_extract_metadata<br>_and_references.ipynb', NB_COLOR, 'white', 8);
-            addBox(5.5, 2.8, 2.2, 0.7, '04_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 9);
-            addBox(4.2, 1.5, 2.0, 0.7, '05_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 9);
-            addBox(6.5, 0.5, 1.6, 0.6, '06_evaluate<br>_llms.ipynb', NB_COLOR, 'white', 9);
+            // Notebooks - staggered diagonal with more space
+            addBox(2.0, 7.0, 2.8, 1.0, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
+            addBox(4.5, 5.6, 2.8, 1.0, '02_fetch_cochrane<br>_pdfs.ipynb', NB_COLOR, 'white', 11);
+            addBox(6.5, 4.2, 3.0, 1.0, '03_extract_metadata<br>_and_references.ipynb', NB_COLOR, 'white', 10);
+            addBox(8.5, 2.8, 3.0, 1.0, '04_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
+            addBox(6.5, 1.5, 2.8, 1.0, '05_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 11);
+            addBox(10.0, 0.5, 2.4, 0.9, '06_evaluate<br>_llms.ipynb', NB_COLOR, 'white', 11);
             
-            // Outputs (right side) - 6 outputs including eval results
-            addBox(8.5, 7.0, 1.7, 0.7, 'cochrane_pubmed<br>_abstracts.csv<br>(17,298 reviews)', OUT_COLOR, DARK, 8);
-            addBox(8.5, 5.6, 1.7, 0.7, 'cochrane_pdfs/<br>(16,588 PDFs)', OUT_COLOR, DARK, 8);
-            addBox(8.5, 4.2, 1.7, 0.7, 'categorized<br>_references.csv<br>(629K refs)', OUT_COLOR, DARK, 8);
-            addBox(8.5, 2.8, 1.7, 0.7, 'referenced_paper<br>_abstracts.csv<br>(47,518 papers)', OUT_COLOR, DARK, 8);
-            addBox(8.5, 1.5, 1.7, 0.7, 'ground_truth<br>_validation.csv<br>(4,089 records)', OUT_COLOR, DARK, 8);
-            addBox(8.5, 0.5, 1.7, 0.6, 'results/<br>eval_*.csv', OUT_COLOR, DARK, 9);
+            // Outputs (right side) - larger boxes
+            addBox(13.0, 7.0, 2.4, 1.0, 'cochrane_pubmed<br>_abstracts.csv<br>(17,298 reviews)', OUT_COLOR, DARK, 10);
+            addBox(13.0, 5.6, 2.4, 1.0, 'cochrane_pdfs/<br>(16,588 PDFs)', OUT_COLOR, DARK, 10);
+            addBox(13.0, 4.2, 2.4, 1.0, 'categorized<br>_references.csv<br>(629K refs)', OUT_COLOR, DARK, 10);
+            addBox(13.0, 2.8, 2.4, 1.0, 'referenced_paper<br>_abstracts.csv<br>(47,518 papers)', OUT_COLOR, DARK, 10);
+            addBox(13.0, 1.5, 2.4, 1.0, 'ground_truth<br>_validation.csv<br>(4,089 records)', OUT_COLOR, DARK, 10);
+            addBox(13.0, 0.5, 2.4, 0.9, 'results/<br>eval_*.csv', OUT_COLOR, DARK, 11);
             
             // Arrows: APIs → Notebooks
-            addArrow(1.5, 8.65, 1.5, 7.4, DARK);   // PubMed → 00
-            addArrow(3.2, 8.65, 3.2, 6.0, DARK);   // Wiley → 02
-            addArrow(5.0, 8.65, 5.5, 3.2, DARK);   // CrossRef → 04
-            addArrow(6.5, 8.65, 5.5, 3.2, DARK);   // PubMed → 04
-            addArrow(8.5, 8.65, 6.5, 0.85, DARK);  // Ollama → 06
+            addArrow(1.5, 8.75, 2.0, 7.55, DARK);    // PubMed → 00
+            addArrow(4.5, 8.75, 4.5, 6.15, DARK);    // Wiley → 02
+            addArrow(7.5, 8.75, 8.5, 3.35, DARK);    // CrossRef → 04
+            addArrow(10.5, 8.75, 8.5, 3.35, DARK);   // PubMed → 04
+            addArrow(13.5, 8.75, 10.0, 1.0, DARK);   // Ollama → 06
             
             // Arrows: Notebooks → Outputs (horizontal)
-            addArrow(2.6, 7.0, 7.6, 7.0);    // 00 → abstracts
-            addArrow(4.3, 5.6, 7.6, 5.6);    // 02 → pdfs
-            addArrow(5.4, 4.2, 7.6, 4.2);    // 03 → refs
-            addArrow(6.7, 2.8, 7.6, 2.8);    // 04 → papers
-            addArrow(5.3, 1.5, 7.6, 1.5);    // 05 → GT
-            addArrow(7.4, 0.5, 7.6, 0.5);    // 06 → eval results
+            addArrow(3.5, 7.0, 11.7, 7.0);     // 00 → abstracts
+            addArrow(6.0, 5.6, 11.7, 5.6);     // 02 → pdfs
+            addArrow(8.1, 4.2, 11.7, 4.2);     // 03 → refs
+            addArrow(10.1, 2.8, 11.7, 2.8);    // 04 → papers
+            addArrow(8.0, 1.5, 11.7, 1.5);     // 05 → GT
+            addArrow(11.3, 0.5, 11.7, 0.5);    // 06 → eval results
             
             // Arrows: Notebook flow (diagonal)
-            addArrow(2.0, 6.6, 2.7, 6.0);    // 00 → 02
-            addArrow(3.7, 5.2, 3.6, 4.6);    // 02 → 03
-            addArrow(4.8, 3.8, 4.9, 3.2);    // 03 → 04
-            addArrow(5.0, 2.4, 4.7, 1.9);    // 04 → 05
-            addArrow(5.3, 1.2, 5.6, 0.85);   // 05 → 06
+            addArrow(3.0, 6.45, 3.9, 6.15);    // 00 → 02
+            addArrow(5.4, 5.05, 5.9, 4.75);    // 02 → 03
+            addArrow(7.5, 3.65, 7.9, 3.35);    // 03 → 04
+            addArrow(7.9, 2.25, 7.4, 2.05);    // 04 → 05
+            addArrow(8.0, 1.0, 8.7, 1.0);      // 05 → 06
             
             const layout = {
-                xaxis: {range: [0, 10], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
-                yaxis: {range: [0, 10], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true, scaleanchor: 'x', scaleratio: 0.6},
+                xaxis: {range: [0, 15], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
+                yaxis: {range: [0, 10.5], showgrid: false, zeroline: false, showticklabels: false, fixedrange: true},
                 shapes: shapes,
                 annotations: annotations,
                 plot_bgcolor: 'white',
