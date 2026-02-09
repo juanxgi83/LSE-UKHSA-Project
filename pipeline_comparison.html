@@ -281,13 +281,13 @@
             
             // Row labels
             annotations.push({x: 0.3, y: API_Y, text: '<b>APIs</b>', showarrow: false, 
-                font: {size: 14, color: API_COLOR}, textangle: -90});
+                font: {size: 16, color: API_COLOR}, textangle: -90});
             annotations.push({x: 0.3, y: NB_Y, text: '<b>Notebooks</b>', showarrow: false, 
-                font: {size: 14, color: NB_COLOR}, textangle: -90});
+                font: {size: 16, color: NB_COLOR}, textangle: -90});
             annotations.push({x: 0.3, y: OUT_Y, text: '<b>Outputs</b>', showarrow: false, 
-                font: {size: 14, color: '#B7950B'}, textangle: -90});
+                font: {size: 16, color: '#B7950B'}, textangle: -90});
             
-            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=11) {
+            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=12) {
                 shapes.push({
                     type: 'rect', x0: x-w/2, y0: y-h/2, x1: x+w/2, y1: y+h/2,
                     fillcolor: color, line: {color: DARK, width: 1.5}, layer: 'below'
@@ -305,22 +305,22 @@
             }
             
             // APIs row
-            addBox(1.5, API_Y, 1.5, 0.55, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 10);
-            addBox(5, API_Y, 1.5, 0.55, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 10);
-            addBox(8.5, API_Y, 1.5, 0.55, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 10);
+            addBox(1.5, API_Y, 1.3, 0.45, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
+            addBox(5, API_Y, 1.3, 0.45, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
+            addBox(8.5, API_Y, 1.3, 0.45, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 11);
             
             // Notebooks row
-            addBox(1.5, NB_Y, 2.0, 0.55, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 10);
-            addBox(4, NB_Y, 2.0, 0.55, '02_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 10);
-            addBox(6.5, NB_Y, 1.8, 0.55, '03_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 10);
-            addBox(8.5, NB_Y, 1.6, 0.55, '04_llm<br>_evaluation.ipynb', NB_COLOR, 'white', 10);
+            addBox(1.5, NB_Y, 1.7, 0.45, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
+            addBox(4, NB_Y, 1.7, 0.45, '02_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
+            addBox(6.5, NB_Y, 1.5, 0.45, '03_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 11);
+            addBox(8.5, NB_Y, 1.4, 0.45, '04_llm<br>_evaluation.ipynb', NB_COLOR, 'white', 11);
             
             // Outputs row
-            addBox(1.2, OUT_Y, 1.7, 0.55, 'cochrane_pubmed<br>_abstracts.csv<br>(17,092 reviews)', OUT_COLOR, DARK, 9);
-            addBox(3, OUT_Y, 1.7, 0.55, 'cochrane_pubmed<br>_references.csv<br>(1,182,678 edges)', OUT_COLOR, DARK, 9);
-            addBox(5, OUT_Y, 1.7, 0.55, 'referenced_paper<br>_abstracts.csv<br>(491,529 papers)', OUT_COLOR, DARK, 9);
-            addBox(7, OUT_Y, 1.7, 0.55, 'ground_truth<br>_validation_set.csv<br>(100 reviews -<br>1,000 records)', OUT_COLOR, DARK, 9);
-            addBox(9, OUT_Y, 1.4, 0.55, 'results/eval_*.csv', OUT_COLOR, DARK, 10);
+            addBox(1.2, OUT_Y, 1.5, 0.45, 'cochrane_pubmed<br>_abstracts.csv<br>(17,092 reviews)', OUT_COLOR, DARK, 10);
+            addBox(3, OUT_Y, 1.5, 0.45, 'cochrane_pubmed<br>_references.csv<br>(1,182,678 edges)', OUT_COLOR, DARK, 10);
+            addBox(5, OUT_Y, 1.5, 0.45, 'referenced_paper<br>_abstracts.csv<br>(491,529 papers)', OUT_COLOR, DARK, 10);
+            addBox(7, OUT_Y, 1.5, 0.45, 'ground_truth<br>_validation_set.csv<br>(100 reviews -<br>1,000 records)', OUT_COLOR, DARK, 10);
+            addBox(9, OUT_Y, 1.2, 0.45, 'results/eval_*.csv', OUT_COLOR, DARK, 11);
             
             // Arrows: API → Notebooks
             addArrow(1.5, API_Y-0.25, 1.5, NB_Y+0.25, DARK);
@@ -379,13 +379,13 @@
             
             // Section labels
             annotations.push({x: 5.75, y: 9.9, text: '<b>Sources / APIs / Applications</b>', showarrow: false,
-                font: {size: 16, color: API_COLOR}});
+                font: {size: 18, color: API_COLOR}});
             annotations.push({x: 10.5, y: 8.2, text: '<b>Outputs</b>', showarrow: false,
-                font: {size: 16, color: '#B7950B'}});
+                font: {size: 18, color: '#B7950B'}});
             annotations.push({x: 4.5, y: 7.8, text: '<b>Notebooks</b>', showarrow: false,
-                font: {size: 16, color: NB_COLOR}});
+                font: {size: 18, color: NB_COLOR}});
             
-            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=12) {
+            function addBox(x, y, w, h, text, color, fontColor='white', fontSize=13) {
                 shapes.push({
                     type: 'rect', x0: x-w/2, y0: y-h/2, x1: x+w/2, y1: y+h/2,
                     fillcolor: color, line: {color: DARK, width: 1.5}, layer: 'below'
@@ -403,27 +403,27 @@
             }
             
             // APIs (top row)
-            addBox(1.5, 9.3, 1.8, 0.8, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
-            addBox(3.5, 9.3, 1.8, 0.8, 'Wiley TDM<br>API', API_COLOR, 'white', 11);
-            addBox(5.5, 9.3, 1.8, 0.8, 'CrossRef<br>API', API_COLOR, 'white', 11);
-            addBox(7.5, 9.3, 1.8, 0.8, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 11);
-            addBox(9.5, 9.3, 1.8, 0.8, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 11);
+            addBox(1.5, 9.3, 1.5, 0.65, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 12);
+            addBox(3.5, 9.3, 1.5, 0.65, 'Wiley TDM<br>API', API_COLOR, 'white', 12);
+            addBox(5.5, 9.3, 1.5, 0.65, 'CrossRef<br>API', API_COLOR, 'white', 12);
+            addBox(7.5, 9.3, 1.5, 0.65, 'PubMed API<br>(NCBI Entrez)', API_COLOR, 'white', 12);
+            addBox(9.5, 9.3, 1.5, 0.65, 'Ollama<br>(Local LLMs)', API_COLOR, 'white', 12);
             
             // Notebooks (staggered diagonal)
-            addBox(2.5, 7.2, 2.4, 0.9, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
-            addBox(4, 5.8, 2.4, 0.9, '02_fetch_cochrane<br>_pdfs.ipynb', NB_COLOR, 'white', 11);
-            addBox(5.5, 4.4, 2.6, 0.9, '03_extract_metadata<br>_and_references.ipynb', NB_COLOR, 'white', 10);
-            addBox(7, 3, 2.6, 0.9, '04_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 11);
-            addBox(5.5, 1.6, 2.4, 0.9, '05_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 11);
-            addBox(8, 0.4, 2.2, 0.8, '06_evaluate<br>_llms.ipynb', NB_COLOR, 'white', 11);
+            addBox(2.5, 7.2, 2.0, 0.7, '00_obtain_cochrane<br>_abstracts.ipynb', NB_COLOR, 'white', 12);
+            addBox(4, 5.8, 2.0, 0.7, '02_fetch_cochrane<br>_pdfs.ipynb', NB_COLOR, 'white', 12);
+            addBox(5.5, 4.4, 2.2, 0.7, '03_extract_metadata<br>_and_references.ipynb', NB_COLOR, 'white', 11);
+            addBox(7, 3, 2.2, 0.7, '04_fetch_referenced<br>_abstracts.ipynb', NB_COLOR, 'white', 12);
+            addBox(5.5, 1.6, 2.0, 0.7, '05_build_ground<br>_truth.ipynb', NB_COLOR, 'white', 12);
+            addBox(8, 0.4, 1.8, 0.65, '06_evaluate<br>_llms.ipynb', NB_COLOR, 'white', 12);
             
             // Outputs (right column)
-            addBox(10.5, 7.2, 2.0, 0.8, 'cochrane_pubmed<br>_abstracts.csv<br>(17,298 reviews)', OUT_COLOR, DARK, 10);
-            addBox(10.5, 5.8, 2.0, 0.8, 'cochrane_pdfs/<br>(16,588 PDFs)', OUT_COLOR, DARK, 10);
-            addBox(10.5, 4.4, 2.0, 0.8, 'categorized<br>_references.csv<br>(629K refs)', OUT_COLOR, DARK, 10);
-            addBox(10.5, 3, 2.0, 0.8, 'referenced_paper<br>_abstracts.csv<br>(47,518 papers)', OUT_COLOR, DARK, 10);
-            addBox(10.5, 1.6, 2.0, 0.8, 'ground_truth<br>_validation.csv<br>(4,089 records)', OUT_COLOR, DARK, 10);
-            addBox(10.5, 0.4, 2.0, 0.7, 'results/eval_*.csv', OUT_COLOR, DARK, 11);
+            addBox(10.5, 7.2, 1.7, 0.65, 'cochrane_pubmed<br>_abstracts.csv<br>(17,298 reviews)', OUT_COLOR, DARK, 11);
+            addBox(10.5, 5.8, 1.7, 0.65, 'cochrane_pdfs/<br>(16,588 PDFs)', OUT_COLOR, DARK, 11);
+            addBox(10.5, 4.4, 1.7, 0.65, 'categorized<br>_references.csv<br>(629K refs)', OUT_COLOR, DARK, 11);
+            addBox(10.5, 3, 1.7, 0.65, 'referenced_paper<br>_abstracts.csv<br>(47,518 papers)', OUT_COLOR, DARK, 11);
+            addBox(10.5, 1.6, 1.7, 0.65, 'ground_truth<br>_validation.csv<br>(4,089 records)', OUT_COLOR, DARK, 11);
+            addBox(10.5, 0.4, 1.7, 0.55, 'results/eval_*.csv', OUT_COLOR, DARK, 12);
             
             // Arrows: APIs → Notebooks
             addArrow(1.5, 8.95, 2.5, 7.6, DARK);
