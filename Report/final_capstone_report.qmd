@@ -1,0 +1,224 @@
+---
+format:
+  pdf:
+    documentclass: article
+    classoption: [12pt, a4paper]
+    geometry:
+      - margin=1in
+    toc: true
+    toc-depth: 3
+    toc-title: "Table of Contents"
+    number-sections: true
+    colorlinks: true
+    linkcolor: blue
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{fancyhdr}
+        \usepackage{graphicx}
+        \usepackage{titlesec}
+        \usepackage{enumitem}
+        \usepackage{amsmath}
+        \usepackage{booktabs}
+        \usepackage{longtable}
+        \setlength{\headheight}{14.5pt}
+        \setlength{\parindent}{0pt}
+    include-before-body:
+      text: |
+        \begin{titlepage}
+        \begin{minipage}{0.45\linewidth}
+          \includegraphics[height=2cm]{../Images/LSE Logo (1).jpg} 
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\linewidth}
+          \flushright
+          \includegraphics[height=2cm]{../Images/UK_Health_Security_Agency_Logo (1).png} 
+        \end{minipage}
+
+        \vspace{3cm}
+        \centering
+        {\Huge \bfseries LLM Utility For Selection Of Health Policy Papers In Systematic Reviews \par}
+        \vspace{0.5cm}
+        {\LARGE Final Capstone Report \par}
+        \vspace{2cm}
+        {\large Samuel Bickel-Barlow, Krisha Chandnani, Cyril Estier, Juan Gomez-Illingworth, Sofie Wiedemeyer \par}
+        \vfill
+        {\large London School of Economics \& UK Health Security Agency \par}
+        {\large October 2025 - March 2026}
+        \end{titlepage}
+        
+        \pagestyle{fancy}
+        \fancyhf{}
+        \lhead{Final Capstone Report}
+        \rhead{LSE \& UKHSA}
+        \cfoot{\thepage}
+---
+
+{{< pagebreak >}}
+
+# Executive Summary
+
+*[Add executive summary here]*
+
+# Introduction
+
+## Background
+
+The UK Health Security Agency (UKHSA) is interested in evaluating the accuracy of large language models (LLMs) in screening paper abstracts for inclusion in systematic reviews of health policy topics. Systematic reviews attempt to identify, appraise and synthesise evidence to answer specific research questions. This makes them a valuable tool for UKHSA policy analysts seeking a complete and unbiased review of relevant evidence to help answer health policy questions.
+
+These reviews are normally created and updated by volunteer researchers, who follow detailed protocols to increase consistency and reduce bias. Volunteers must identify and evaluate hundreds of potentially relevant papers for inclusion before even commencing a systematic review. This labour-intensive process could potentially be automated by LLMs, whose ability to intelligently handle text data could make them ideally suited to this task, if they can make decisions about paper inclusion at least as accurately as human reviewers.
+
+## Project Objectives
+
+The objective of this project is to analyse the effectiveness of automating the selection process for systematic reviews in the field of health policy by using LLMs. The analysis optimises, measures, and reports the accuracy of LLMs in accomplishing this task within an automated systematic review pipeline.
+
+## Report Structure
+
+This report is structured as follows:
+
+1. **Literature Review** - Review of existing research on LLM applications in systematic reviews
+2. **Data & Methodology** - Description of data sources, processing pipeline, and evaluation approach
+3. **Results** - Presentation of model performance and comparative analysis
+4. **Discussion** - Interpretation of findings and implications
+5. **Conclusions & Recommendations** - Summary and actionable recommendations for UKHSA
+
+# Literature Review
+
+*[Add literature review content here]*
+
+## Systematic Reviews in Health Policy
+
+*[Add content]*
+
+## Large Language Models for Text Classification
+
+*[Add content]*
+
+## LLM Applications in Systematic Review Automation
+
+*[Add content]*
+
+# Data & Methodology
+
+## Data Sources
+
+### Cochrane Database of Systematic Reviews
+
+Cochrane Library is one of the primary organisations engaged in the creation of systematic reviews. Their database includes thousands of high-quality systematic reviews on many health-related topics. The large number of high-quality systematic reviews makes the Cochrane Database of Systematic Reviews a good candidate for a source of "ground truth" in our evaluation of LLMs' application to the creation of these reviews.
+
+### PubMed Database
+
+PubMed is a database maintained by the U.S. National Library of Medicine. It constitutes an index of biomedical literature, compiling citations and abstracts from journals and databases, e.g. the Cochrane Database of Systematic Reviews (CDSR).
+
+## Data Collection & Processing
+
+*[Add content about data pipeline]*
+
+## Ground Truth Construction
+
+*[Add content about validation dataset creation]*
+
+## Model Selection
+
+*[Add content about which LLMs were evaluated]*
+
+## Evaluation Metrics
+
+The following metrics were used to assess model performance:
+
+### Precision
+
+The percentage of correctly predicted positives:
+
+$$
+\text{Precision} = \frac{TP}{TP + FP}
+$$
+
+### Recall
+
+The percentage of real positives that were identified correctly:
+
+$$
+\text{Recall} = \frac{TP}{TP + FN}
+$$
+
+### F1 Score
+
+The harmonic mean of precision and recall:
+
+$$
+F1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+$$
+
+### Cohen's Kappa
+
+A statistic that gauges agreement among raters for categorical items, adjusting for agreement by chance:
+
+$$
+\kappa = \frac{p_o-p_e}{1-p_e}
+$$
+
+where:
+
+- $p_o$ is the observed agreement proportion among raters
+- $p_e$ is the expected chance agreement proportion
+
+# Results
+
+## Model Performance Overview
+
+*[Add results content]*
+
+## Comparative Analysis
+
+*[Add comparative analysis]*
+
+## Error Analysis
+
+*[Add error analysis findings]*
+
+# Discussion
+
+## Interpretation of Results
+
+*[Add discussion]*
+
+## Limitations
+
+*[Add limitations]*
+
+## Implications for UKHSA
+
+*[Add implications]*
+
+# Conclusions & Recommendations
+
+## Summary of Findings
+
+*[Add conclusions]*
+
+## Recommendations
+
+*[Add actionable recommendations]*
+
+## Future Work
+
+*[Add suggestions for future research]*
+
+# References
+
+*[Add references]*
+
+# Appendices {.unnumbered}
+
+## Appendix A: Technical Implementation Details {.unnumbered}
+
+*[Add technical details]*
+
+## Appendix B: Full Model Evaluation Results {.unnumbered}
+
+*[Add detailed results tables]*
+
+## Appendix C: Annotated Validation Dataset {.unnumbered}
+
+*[Add validation dataset information]*
