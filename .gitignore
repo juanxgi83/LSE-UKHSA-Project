@@ -1,3 +1,6 @@
+# Ignore Archive folder
+Archive/
+
 # Ignore data and large files
 data/
 Data/
