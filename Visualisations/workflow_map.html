@@ -15,15 +15,17 @@
         
         .controls {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
             z-index: 1000;
             background: rgba(255,255,255,0.95);
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
             align-items: center;
         }
         
@@ -35,14 +37,23 @@
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s;
+            width: 100%;
+        }
+        
+        .zoom-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
         }
         
         .zoom-btn {
             background: #3B82F6;
             color: white;
-            width: 36px;
+            width: 36px !important;
             height: 36px;
-            padding: 0;
+            padding: 0 !important;
             font-size: 18px;
             font-weight: bold;
         }
@@ -72,10 +83,10 @@
         }
         
         .divider {
-            width: 1px;
-            height: 24px;
+            width: 100%;
+            height: 1px;
             background: #CBD5E1;
-            margin: 0 5px;
+            margin: 4px 0;
         }
         
         .svg-container {
@@ -91,32 +102,15 @@
             transform-origin: 0 0;
             transition: transform 0.1s ease-out;
         }
-        
-        .help {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #64748B;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        
-        .help kbd {
-            background: #E2E8F0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: inherit;
-        }
     </style>
 </head>
 <body>
     <div class="controls">
-        <button class="zoom-btn" onclick="zoomIn()">+</button>
-        <span class="zoom-level" id="zoomLevel">100%</span>
-        <button class="zoom-btn" onclick="zoomOut()">−</button>
+        <div class="zoom-row">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+        </div>
         <div class="divider"></div>
         <button class="reset-btn" onclick="resetView()">Reset</button>
         <div class="divider"></div>
@@ -124,10 +118,6 @@
         <button class="preset-btn" onclick="focusOn('pipeline')">Pipeline</button>
         <button class="preset-btn" onclick="focusOn('outputs')">Outputs</button>
         <button class="preset-btn" onclick="focusOn('all')">Full View</button>
-    </div>
-    
-    <div class="help">
-        <kbd>Scroll</kbd> to zoom &nbsp;|&nbsp; <kbd>Drag</kbd> to pan &nbsp;|&nbsp; <kbd>Double-click</kbd> to zoom in
     </div>
     
     <div class="svg-container" id="container">
