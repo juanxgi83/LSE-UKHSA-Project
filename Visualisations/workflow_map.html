@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Workflow Map</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F0F4FF 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .controls button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn {
+            background: #3B82F6;
+            color: white;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .zoom-btn:hover { background: #2563EB; }
+        
+        .reset-btn {
+            background: #64748B;
+            color: white;
+        }
+        
+        .reset-btn:hover { background: #475569; }
+        
+        .preset-btn {
+            background: #E2E8F0;
+            color: #334155;
+        }
+        
+        .preset-btn:hover { background: #CBD5E1; }
+        .preset-btn.active { background: #3B82F6; color: white; }
+        
+        .zoom-level {
+            font-size: 13px;
+            color: #64748B;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: #CBD5E1;
+            margin: 0 5px;
+        }
+        
+        .svg-container {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            cursor: grab;
+        }
+        
+        .svg-container:active { cursor: grabbing; }
+        
+        .svg-wrapper {
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .help {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #64748B;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .help kbd {
+            background: #E2E8F0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button class="zoom-btn" onclick="zoomOut()">−</button>
+        <div class="divider"></div>
+        <button class="reset-btn" onclick="resetView()">Reset</button>
+        <div class="divider"></div>
+        <button class="preset-btn" onclick="focusOn('inputs')">Inputs</button>
+        <button class="preset-btn" onclick="focusOn('pipeline')">Pipeline</button>
+        <button class="preset-btn" onclick="focusOn('outputs')">Outputs</button>
+        <button class="preset-btn" onclick="focusOn('all')">Full View</button>
+    </div>
+    
+    <div class="help">
+        <kbd>Scroll</kbd> to zoom &nbsp;|&nbsp; <kbd>Drag</kbd> to pan &nbsp;|&nbsp; <kbd>Double-click</kbd> to zoom in
+    </div>
+    
+    <div class="svg-container" id="container">
+        <div class="svg-wrapper" id="wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1055" height="653" viewBox="0 0 1055 653">
+<defs>
+<filter id="sh" x="-5%" y="-5%" width="112%" height="118%"><feDropShadow dx="1.5" dy="2.5" stdDeviation="4" flood-opacity="0.11"/></filter>
+<filter id="shL" x="-4%" y="-4%" width="110%" height="114%"><feDropShadow dx="1" dy="1.5" stdDeviation="2.5" flood-opacity="0.07"/></filter>
+<marker id="aP" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#3B82F6" stroke="none"/></marker>
+<marker id="aI" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#D97706" stroke="none"/></marker>
+<marker id="aA" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#7C3AED" stroke="none"/></marker>
+<marker id="aC" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#10B981" stroke="none"/></marker>
+<marker id="aK" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#EF4444" stroke="none"/></marker>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F8FAFC"/><stop offset="50%" stop-color="#EFF6FF"/><stop offset="100%" stop-color="#F0F4FF"/></linearGradient>
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 40" stroke="#E2E8F0" stroke-width="0.4" opacity="0.35"/></pattern>
+</defs>
+<rect width="1055" height="653" fill="url(#bg)"/>
+<rect width="1055" height="653" fill="url(#grid)" opacity="0.25"/>
+<rect x="25" y="12" width="710" height="100" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="380.0" y="28" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">EXTERNAL INPUTS &amp; DATA SOURCES</text>
+<rect x="25" y="130" width="710" height="425" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="380.0" y="146" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">PIPELINE</text>
+<rect x="755" y="130" width="275" height="425" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="892.5" y="146" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">OUTPUTS</text>
+<rect x="60" y="43.0" width="140" height="55" rx="9" fill="#FEF3C7" stroke="#D97706" stroke-width="1.6" filter="url(#shL)"/>
+<text x="130.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">119 Cochrane Public</text><text x="130.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">Health Review PDFs</text><text x="130.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">(manual download)</text>
+<rect x="226.66666666666666" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="296.66666666666663" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">CrossRef API</text>
+<rect x="393.3333333333333" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="463.3333333333333" y="63.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">PubMed / NCBI</text><text x="463.3333333333333" y="77.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">Entrez API</text>
+<rect x="560.0" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="630.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">LLM Backends</text><text x="630.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">(Ollama · Anthropic</text><text x="630.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">OpenAI · Google)</text>
+<rect x="60" y="160" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="64" cy="164" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="64" y="168" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">0</text>
+<text x="130.0" y="181.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Extract Metadata</text><text x="130.0" y="196.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">&amp; References</text>
+<rect x="185" y="240" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="189" cy="244" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="189" y="248" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">1</text>
+<text x="255.0" y="261.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Fetch Referenced</text><text x="255.0" y="276.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Abstracts</text>
+<rect x="310" y="320" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="314" cy="324" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="314" y="328" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">2</text>
+<text x="380.0" y="341.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Execute PubMed</text><text x="380.0" y="356.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Searches</text>
+<rect x="435" y="400" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="439" cy="404" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="439" y="408" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">3</text>
+<text x="505.0" y="421.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Build Ground</text><text x="505.0" y="436.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Truth Dataset</text>
+<rect x="560" y="480" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="564" cy="484" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="564" y="488" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">4</text>
+<text x="630.0" y="501.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Evaluate LLMs</text><text x="630.0" y="516.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">(4-Phase Pipeline)</text>
+<rect x="770" y="160" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="173.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">review_metadata.csv</text><text x="892.5" y="187.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">categorized_references.csv</text><text x="892.5" y="201.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">search_strategies.csv</text>
+<rect x="770" y="240" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="253.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">referenced_paper_abstracts.csv</text><text x="892.5" y="267.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">doi_pmid_cache.csv</text><text x="892.5" y="281.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(included → label = 1)</text>
+<rect x="770" y="320" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="340.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">pubmed_excluded_abstracts.csv</text><text x="892.5" y="354.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(excluded → label = 0)</text>
+<rect x="770" y="400" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="420.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">ground_truth_validation_dataset.csv</text><text x="892.5" y="434.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(balanced + contamination-checked)</text>
+<rect x="770" y="480" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="500.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">Data/results/phase*_*.csv</text><text x="892.5" y="514.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(metrics + predictions)</text>
+<path d="M 130.0,215 L 130.0,267.5 L 185,267.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 255.0,295 L 255.0,347.5 L 310,347.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 380.0,375 L 380.0,427.5 L 435,427.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 505.0,455 L 505.0,507.5 L 560,507.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<line x1="200" y1="187" x2="770" y2="187" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="325" y1="267" x2="770" y2="267" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="450" y1="347" x2="770" y2="347" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="575" y1="427" x2="770" y2="427" stroke="#EF4444" stroke-width="1.2" marker-end="url(#aK)"/>
+<line x1="700" y1="507" x2="770" y2="507" stroke="#EF4444" stroke-width="1.2" marker-end="url(#aK)"/>
+<path d="M 130.0,97.0 L 130.0,112.0 L 130.0,112.0 L 130.0,160" fill="none" stroke="#D97706" stroke-width="1.2" marker-end="url(#aI)"/>
+<path d="M 296.66666666666663,97.0 L 296.66666666666663,175 L 255.0,175 L 255.0,240" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 463.3333333333333,97.0 L 463.3333333333333,205 L 280.0,205 L 280.0,240" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 463.3333333333333,97.0 L 463.3333333333333,295 L 380.0,295 L 380.0,320" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 630.0,97.0 L 630.0,455 L 630.0,455 L 630.0,480" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<rect x="25" y="573" width="1005" height="55" rx="10" fill="white" fill-opacity="0.6" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="8 4"/>
+<rect x="40" y="588" width="15" height="15" rx="3.5" fill="#FEF3C7" stroke="#D97706" stroke-width="1.2"/>
+<text x="61" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Manual data input</text>
+<text x="61" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(Cochrane Library — Public Health)</text>
+<rect x="235" y="588" width="15" height="15" rx="3.5" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.2"/>
+<text x="256" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">External APIs</text>
+<text x="256" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(CrossRef, PubMed, LLMs)</text>
+<rect x="430" y="588" width="15" height="15" rx="3.5" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.2"/>
+<text x="451" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Jupyter Notebooks</text>
+<text x="451" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(pipeline steps)</text>
+<rect x="625" y="588" width="15" height="15" rx="3.5" fill="#D1FAE5" stroke="#10B981" stroke-width="1.2"/>
+<text x="646" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Intermediate</text>
+<text x="646" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">CSV outputs</text>
+<rect x="820" y="588" width="15" height="15" rx="3.5" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/>
+<text x="841" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Key outputs</text>
+<text x="841" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(ground truth + results)</text>
+</svg>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const wrapper = document.getElementById('wrapper');
+        const zoomLevelDisplay = document.getElementById('zoomLevel');
+        
+        let scale = 1;
+        let translateX = 50;
+        let translateY = 50;
+        let isDragging = false;
+        let startX, startY;
+        
+        const MIN_SCALE = 0.3;
+        const MAX_SCALE = 4;
+        const ZOOM_STEP = 0.15;
+        
+        const presets = {
+            inputs: { x: -20, y: 20, scale: 2 },
+            pipeline: { x: 50, y: -100, scale: 1.3 },
+            outputs: { x: -550, y: -100, scale: 1.5 },
+            all: { x: 50, y: 50, scale: 1 }
+        };
+        
+        function updateTransform(smooth = true) {
+            wrapper.style.transition = smooth ? 'transform 0.3s ease-out' : 'transform 0.05s ease-out';
+            wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            zoomLevelDisplay.textContent = Math.round(scale * 100) + '%';
+        }
+        
+        function zoomIn() {
+            scale = Math.min(MAX_SCALE, scale + ZOOM_STEP);
+            updateTransform();
+        }
+        
+        function zoomOut() {
+            scale = Math.max(MIN_SCALE, scale - ZOOM_STEP);
+            updateTransform();
+        }
+        
+        function resetView() {
+            scale = 1;
+            translateX = 50;
+            translateY = 50;
+            updateTransform();
+            clearActivePresets();
+        }
+        
+        function focusOn(preset) {
+            const p = presets[preset];
+            scale = p.scale;
+            translateX = p.x;
+            translateY = p.y;
+            updateTransform();
+            
+            clearActivePresets();
+            event.target.classList.add('active');
+        }
+        
+        function clearActivePresets() {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale + delta));
+            
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const scaleChange = newScale / scale;
+            translateX = mouseX - (mouseX - translateX) * scaleChange;
+            translateY = mouseY - (mouseY - translateY) * scaleChange;
+            
+            scale = newScale;
+            updateTransform(false);
+        }, { passive: false });
+        
+        container.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            container.style.cursor = 'grabbing';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform(false);
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            container.style.cursor = 'grab';
+        });
+        
+        container.addEventListener('dblclick', (e) => {
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const newScale = Math.min(MAX_SCALE, scale + 0.5);
+            const scaleChange = newScale / scale;
+            translateX = mouseX - (mouseX - translateX) * scaleChange;
+            translateY = mouseY - (mouseY - translateY) * scaleChange;
+            
+            scale = newScale;
+            updateTransform();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '+' || e.key === '=') zoomIn();
+            if (e.key === '-') zoomOut();
+            if (e.key === '0') resetView();
+            if (e.key === 'Escape') resetView();
+        });
+        
+        updateTransform();
+    </script>
+</body>
+</html>

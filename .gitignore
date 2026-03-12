@@ -37,6 +37,7 @@ __pycache__/
 
 # Ignore HTML exports
 *.html
+!Visualisations/*.html
 
 # Ignore image exports
 *.png
