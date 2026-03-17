@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Strategy Translation — Ovid to PubMed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --bg-card: #F1F5F9;
+            --bg-code-ovid: #EFF6FF;
+            --bg-code-pubmed: #ECFDF5;
+            --accent-blue: #2563EB;
+            --accent-green: #059669;
+            --accent-purple: #7C3AED;
+            --accent-amber: #D97706;
+            --accent-rose: #E11D48;
+            --text-primary: #1E293B;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --border-color: #CBD5E1;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value.blue { color: var(--accent-blue); }
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.purple { color: var(--accent-purple); }
+        .stat-value.amber { color: var(--accent-amber); }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        /* Search and Filter */
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 48px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+        }
+        
+        .filter-btn {
+            padding: 14px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background: var(--bg-card);
+        }
+        
+        .filter-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        
+        /* Translation Cards */
+        .translations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .translation-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .translation-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        
+        .card-header {
+            padding: 20px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid transparent;
+            transition: background 0.2s;
+        }
+        
+        .card-header:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        .card-header.expanded {
+            border-bottom-color: var(--border-color);
+        }
+        
+        .card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .card-doi {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .card-badges {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+        
+        .badge-modified {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-amber);
+        }
+        
+        .expand-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+        
+        .card-header.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Expanded Content */
+        .card-content {
+            display: none;
+            padding: 0;
+        }
+        
+        .card-content.show {
+            display: block;
+        }
+        
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        
+        @media (max-width: 900px) {
+            .code-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .code-panel {
+            padding: 20px;
+        }
+        
+        .code-panel.ovid {
+            background: var(--bg-code-ovid);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .code-panel.pubmed {
+            background: var(--bg-code-pubmed);
+        }
+        
+        @media (max-width: 900px) {
+            .code-panel.ovid {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+        
+        .code-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .code-panel.ovid .code-label {
+            color: #1D4ED8;
+        }
+        
+        .code-panel.pubmed .code-label {
+            color: #047857;
+        }
+        
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #1E293B;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .code-block::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .code-block::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .code-block::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        
+        /* Syntax Highlighting */
+        .code-block .mesh { color: #DB2777; font-weight: 500; }
+        .code-block .field { color: #B45309; }
+        .code-block .bool { color: #2563EB; font-weight: 600; }
+        .code-block .num { color: #7C3AED; }
+        .code-block .wild { color: #DC2626; }
+        
+        /* Translation Notes */
+        .translation-notes {
+            padding: 16px 20px;
+            background: rgba(124, 58, 237, 0.05);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .notes-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notes-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .notes-text strong {
+            color: var(--accent-purple);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        /* Arrow Animation */
+        .arrow-animation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            color: var(--accent-purple);
+            font-size: 1.5rem;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 48px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .translation-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Search Strategy Translation</h1>
+            <p>Automated conversion of Ovid MEDLINE search strategies to PubMed syntax across 116 Cochrane Public Health Reviews</p>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value blue">116</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">42</div>
+                <div class="stat-label">Strategies Translated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value purple">13</div>
+                <div class="stat-label">Direct Translations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value amber">29</div>
+                <div class="stat-label">With Syntax Adaptations</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #DB2777;"></div>
+                <span>MeSH Terms</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #B45309;"></div>
+                <span>Field Tags [tiab], [Mesh]</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2563EB;"></div>
+                <span>Boolean Operators</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #7C3AED;"></div>
+                <span>Line References</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #DC2626;"></div>
+                <span>Wildcards *</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by DOI, title, or keyword...">
+            </div>
+            <button class="filter-btn active" data-filter="all">All (42)</button>
+            <button class="filter-btn" data-filter="success">Direct (13)</button>
+            <button class="filter-btn" data-filter="modified">Adapted (29)</button>
+        </div>
+        
+        <div class="translations-list" id="translationsList">
+            <!-- Cards inserted by JS -->
+        </div>
+        
+        <footer class="footer">
+            <p>LSE-UKHSA Capstone Project — Cochrane Public Health Review Analysis</p>
+        </footer>
+    </div>
+    
+    <script>
+        const translations = [{"doi": "CD001855", "title": "Helmets for preventing head and facial injuries in bicyclists", "database": "MEDLINE 1966-2006", "raw_strategy": "1. explode \"Accidents-Tra\ufb00ic\" / all SUBHEADINGS\n2. explode \"Accident-Prevention\" / all SUBHEADINGS\n3. explode \"Bicycling\" / all SUBHEADINGS\n4. explode \"Head-Protective-Devices\" / all SUBHEADINGS\n5. helmet* in ab,ti\n6. bicycl* or cycling or cyclist* in ab,ti\n7. injur* or fatal* or accident* or crash* or prevent* or collide* or collision* in ab,ti\n8. 1 or 2 or 7", "pubmed_query": "(((explode \"Accidents-Tra\ufb00ic\" / all SUBHEADINGS)) OR ((explode \"Accident-Prevention\" / all SUBHEADINGS))) OR ((injur* OR fatal* OR accident* OR crash* OR prevent* OR collide* OR collision* in ab,ti))", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD001857", "title": "Interventions for preventing injuries in problem drinkers", "database": "MEDLINE (1966 to March 2002)", "raw_strategy": "1.\u00a0(ALCOHOLIC-INTOXICATION OR ALCOHOL-DRINKING OR ALCOHOLISM OR\u00a0 TEMPERANCE) in MJME\n2.\u00a0(dr?nk* NEAR3 excess*) or (dr?nk* NEAR3 binge*) or (dr?nk* NEAR3 heavy*) or (dr?nk* NEAR3 hazard*) or (dr?nk* NEAR3 problem*) or", "pubmed_query": "(dr*nk* AND excess*) OR (dr*nk* AND binge*) OR (dr*nk* AND heavy*) OR (dr*nk* AND hazard*) OR (dr*nk* AND problem*)", "notes": "wildcard_approximated; near_converted_to_AND", "is_success": false, "has_adjacency": false, "has_wildcard": true, "has_mp": false, "has_near": true}, {"doi": "CD002246", "title": "Interventions for promoting smoke alarm ownership and function", "database": "MEDLINE 1966 to Sept (week 1) 2007", "raw_strategy": "1. burns/pc [Prevention & Control]\n2.\u00a0fires/pc [Prevention & Control]\n3.\u00a0exp Accident Prevention/\n4.\u00a0(fire or fires or burn or burns or smoke).ab,ti.\n5.\u00a03 and 4\n6.\u00a0((detector$ or alarm$) adj5 (fire$ or smoke)).ab,ti.\n7.\u00a0((fire or fires or burn or burns) adj3 (prevent$ or control$ or avoid$ or stop$)).ab,ti.\n8.\u00a0((home$ or house) adj3 (safety or accident$ or fire or fires)).ab,ti.\n9.\u00a01 or 2 or 5 or 6 or 7 or 8\n10. exp Protective Devices/\n11. exp Burns/\n12. exp Fires/\n13. (fire or fires or burn or burns).ab,ti.\n14. or/11-13\n15. 10 and 14", "pubmed_query": "((\"Protective Devices\"[Mesh])) AND (((((\"Burns\"[Mesh])) OR ((\"Fires\"[Mesh]))) OR (((fire OR fires OR burn OR burns)[tiab]))))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD003110", "title": "Area-wide tra\ufb00ic calming for preventing tra\ufb00ic related injuries", "database": "MEDLINE & EMBASE search strategy", "raw_strategy": "1. tra\ufb00ic restrain$.ab,ti.\n2. tra\ufb00ic calm$.ab,ti.\n3. tra\ufb00ic engineering.ab,ti.\n4. road design$.ab,ti.\n5. road layout.ab,ti.\n6. local tra\ufb00ic control.ab,ti.\n7. tra\ufb00ic distribution.ab,ti.\n8. speed cushion$.ab,ti.\n9. speed hump$.ab,ti.\n10. speed bump$.ab,ti.\n11. speed table$.ab,ti.\n12. vehicle speed control$.ab,ti.\n13. road narrowing.ab,ti.\n14. road hierarchy.ab,ti.\n15. lef turn lane$.ab,ti.\n16. (\"20\" adj4 zone$).ab,ti.\n17. (\"30\" adj4 zone$).ab,ti.\n18. or/1-17\n19. (Prospective adj1 (study or studies)).mp. [mp=title, original title, abstract, name of substance word, subject heading word]\n20. (Program evaluation or evaluation research).mp. [mp=title, original title, abstract, name of substance word, subject heading word]\n21. (randomi$ or randomly).mp. [mp=title, original title, abstract, name of substance word, subject heading word]\n22. (controlled adj2 (trial or trials or study or studies or experiment$)).mp. [mp=title, original title, abstract, name of substance word,", "pubmed_query": "(((((((((((((((((tra\ufb00ic restrain*[tiab])) OR ((tra\ufb00ic calm*[tiab]))) OR ((tra\ufb00ic engineering[tiab]))) OR ((road design*[tiab]))) OR ((road layout[tiab]))) OR ((local tra\ufb00ic control[tiab]))) OR ((tra\ufb00ic distribution[tiab]))) OR ((speed cushion*[tiab]))) OR ((speed hump*[tiab]))) OR ((speed bump*[tiab]))) OR ((speed table*[tiab]))) OR ((vehicle speed control*[tiab]))) OR ((road narrowing[tiab]))) OR ((road hierarchy[tiab]))) OR ((lef turn lane*[tiab]))) OR (((\"20\" AND zone*)[tiab]))) OR (((\"30\" AND zone*)[tiab]))", "notes": "adjacency_converted_to_AND; mp_approximated", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD003985", "title": "Non-legislative interventions for the promotion of cycle helmet wearing by child...", "database": "MEDLINE 1950 to March, week 4 2009/PubMed (accessed 03 April 2009)", "raw_strategy": "1. exp Bicycling/\n2. (bicycl* or cycle* or cycling or cyclist* or bike*).ab,ti.\n3. 1 or 2\n4. exp Head Protective Devices/\n5. helmet*.ab,ti.\n6. 4 or 5\n7. 6 and 3\n8. randomi?ed.ab,ti.\n9. randomized controlled trial.pt.\n10. controlled clinical trial.pt.", "pubmed_query": "((((\"Head Protective Devices\"[Mesh])) OR ((helmet*[tiab])))) AND ((((\"Bicycling\"[Mesh])) OR (((bicycl* OR cycle* OR cycling OR cyclist* OR bike*)[tiab]))))", "notes": "wildcard_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": true, "has_mp": false, "has_near": false}, {"doi": "CD004333", "title": "Helmets for preventing injury in motorcycle riders", "database": "MEDLINE 1950-2007/April (week 2)", "raw_strategy": "1. Accidents/\n2. exp Accidents, Tra\ufb00ic/\n3. exp Accident Prevention/\n4. exp Motorcycles/\n5. (motor-cycl$ or motorcycl$ or motor-bik$ or motorbik$ or scooter$ or moped$ or moto or motocycl$ or motocicl$).ab,ti.\n6. (trauma$ or injur$ or fatal$ or accident$ or crash$ or prevent$ or collide$ or collision*).ab,ti.\n7. or/1-6\n8. (helmet$ or (head adj3 protect$)).ab,ti.\n9. exp Head Protective Devices/\n10. 7 or 8\n11. 6 and 9\n12. clinical trial.pt.\n13. randomized.ti,ab.\n14. randomised.ti,ab.\n15. placebo.ti,ab.\n16. drug therapy.fs.\n17. randomly.ti,ab.\n18. trial.ti,ab.\n19. groups.ti,ab.\n20. 11 or 12 or 14 or 15 or 16 or 17 or 18", "pubmed_query": "((((((((((trauma* OR injur* OR fatal* OR accident* OR crash* OR prevent* OR collide* OR collision*)[tiab])) AND ((\"Head Protective Devices\"[Mesh])))) OR ((clinical trial[pt]))) OR ((randomised[tiab]))) OR ((placebo[tiab]))) OR ((drug therapy[sh]))) OR ((randomly[tiab]))) OR ((trial[tiab]))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD004334", "title": "Interventions for promoting booster seat use in four to eight year olds travelli...", "database": "MEDLINE (1966 to April 2005)", "raw_strategy": "1. \"Infant-Equipment\" / all SUBHEADINGS\n2. child seat* or infant seat* or (child near restraint*)\n3. \"Seat-Belts\" / all SUBHEADINGS or \"Protective-Devices\" / all SUBHEADINGS\n4. booster seat* or safety seat* or car seat* or (vehicle near restrain*) or (car near restrain*) or (automobile near restrain*) or (automotive", "pubmed_query": "booster seat* OR safety seat* OR car seat* OR (vehicle AND restrain*) OR (car AND restrain*) OR (automobile AND restrain*) OR (automotive)", "notes": "near_converted_to_AND", "is_success": false, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": true}, {"doi": "CD004726", "title": "Education of children and adolescents for the prevention of dog bite injuries", "database": "MEDLINE (to July 2008)", "raw_strategy": "1. exp Dogs/\n2.\u00a0exp \"Bites and Stings\"/pc [Prevention & Control]\n3.\u00a0(bite$ or bitten or attack$).ab,ti.\n4.\u00a01 and (2 or 3)\n5.\u00a0((dog$ or canine$) adj5 (bit$ or attack$)).ab,ti.\n6.\u00a04 or 5\n7.\u00a0(educat$ or teach$ or inform$ or train$ or instruct$ or safe$ or prevent$ or securit$).ab,ti.\n8.\u00a06 and 7", "pubmed_query": "((((1 AND (2 OR 3))) OR ((((dog* OR canine*) AND (bit* OR attack*))[tiab])))) AND (((educat* OR teach* OR inform* OR train* OR instruct* OR safe* OR prevent* OR securit*)[tiab]))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD004728", "title": "Street lighting for preventing road tra\ufb00ic injuries", "database": "MEDLINE (1966 to October 2008)", "raw_strategy": "1. exp Lighting/\n2. ((light* or illuminat* or luminair*) adj5 (road* or street* or highway* or freeway*)).ab,ti.\n3. (streetlight* or street-light*).ab,ti.\n4. 1 or 3 or 2\n5. exp Accident Prevention/\n6. exp Accidents, Tra\ufb00ic/pc [Prevention & Control]\n7. ((accident* or crash* or injur* or fatal* or disabl* or disabil*) adj5 prevent*).ab,ti.\n8. 5 or 6 or 7\n9. 8 and 4", "pubmed_query": "(((((\"Accident Prevention\"[Mesh])) OR ((\"Accidents, Tra\ufb00ic\"[Mesh][Prevention & Control]))) OR ((((accident* OR crash* OR injur* OR fatal* OR disabl* OR disabil*) AND prevent*)[tiab])))) AND (((((\"Lighting\"[Mesh])) OR (((streetlight* OR street-light*)[tiab]))) OR ((((light* OR illuminat* OR luminair*) AND (road* OR street* OR highway* OR freeway*))[tiab]))))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD004893", "title": "Anticonvulsants for preventing seizures in patients with chronic subdural haemat...", "database": "MEDLINE (OvidSP)", "raw_strategy": "1. exp Subdural Hematoma/\n2. (haematoma* or hematoma* or haemorrhag* or hemorrhag* or bleed*).mp. [mp=title, abstract, original title, name of substance word,", "pubmed_query": "(haematoma* OR hematoma* OR haemorrhag* OR hemorrhag* OR bleed*)[tiab] [mp=title, abstract, original title, name of substance word,", "notes": "mp_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD005242", "title": "Increased police patrols for preventing alcohol-impaired driving", "database": "Medline (to May, week 4 2006)", "raw_strategy": "1. exp Automobile Driving/\n2. driv$.mp.", "pubmed_query": "driv*[tiab]", "notes": "mp_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD005401", "title": "Bicycle helmet legislation for the uptake of helmet use and prevention of head i...", "database": "Medline, Embase, CINAHL. Last searched April 2010", "raw_strategy": "1. Bicycle* or bike* or cycl*\n2. Helmet*\n3. Law* or legislat*\n4. 1 and 2 and 3", "pubmed_query": "(((Bicycle* OR bike* OR cycl*)) AND ((Helmet*))) AND ((Law* OR legislat*))", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD006252", "title": "Vision screening of older drivers for preventing road tra\ufb00ic injuries and fatali...", "database": "MEDLINE (OvidSP) (1950 to Sept 27th 2013);", "raw_strategy": "4. Embase (OvidSP) (1980 to 2013 week 39);\n5. PsycINFO (1806 to October week 1 2013);\n6. ISI Web of Science: Social Sciences Citation Index (SSCI) (1970 to", "pubmed_query": "ISI Web of Science* Social Sciences Citation Index (SSCI) (1970 to)", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD006527", "title": "Educational interventions for the prevention of eye injuries", "database": "MEDLINE 1950 to July (week 4) 2008", "raw_strategy": "1. exp eye/", "pubmed_query": "\"eye\"[Mesh]", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD007651", "title": "School-based physical activity programs for promoting physical activity and fitn...", "database": "MEDLINE (inferred from Ovid syntax)", "raw_strategy": "36. leisure time/ or recreation/\n37. walking.mp. or exp WALKING/\n38. sports/ or baseball/ or basketball/ or football/ or judo/ or martial arts/ or soccer/ or swimming/ or tennis/ or weightlifting/\n39. exp Dance Therapy/ or exp Dance/ or dancing.mp.", "pubmed_query": "\"Dance Therapy\"[Mesh]/ OR dancing[tiab]", "notes": "mp_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD007825", "title": "Collaboration between local health and local government agencies for health impr...", "database": "Ovid MEDLINE\u00ae", "raw_strategy": "1. inter?institutional relation:.mp.\n2. exp Interprofessional relations/\n3. interdepartmental relations/\n4. interdepartmental: relation:.mp. or inter-departmental: relation:.tw.\n5. interprofessional: relation:.mp. or inter-professional: relation:.tw.\n6. community-institutional relations/\n7. exp cooperative behavior/", "pubmed_query": "\"cooperative behavior\"[Mesh]", "notes": "mp_approximated; wildcard_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": true, "has_mp": true, "has_near": false}, {"doi": "CD008160", "title": "Workplace interventions for neck pain in workers", "database": "MEDLINE Search Strategy", "raw_strategy": "1\u00a0\u00a0\u00a0 randomized controlled trial.pt.\n2\u00a0\u00a0\u00a0 controlled clinical trial.pt.\n3\u00a0\u00a0\u00a0 randomized.ab.\n4\u00a0\u00a0\u00a0 placebo.ab,ti.\n5\u00a0\u00a0\u00a0 drug therapy.fs.\n6\u00a0\u00a0\u00a0 randomly.ab,ti.\n7\u00a0\u00a0\u00a0 trial.ab,ti.\n8\u00a0\u00a0\u00a0 groups.ab,ti.\n9\u00a0\u00a0\u00a0 or/1-8\n10\u00a0 (animals not (humans and animals)).sh.\n11\u00a0 9 not 10\n12\u00a0 neck muscles.sh.\n13\u00a0 exp Neck/\n14\u00a0 exp neck pain/\n15\u00a0 whiplash injuries.sh.\n16\u00a0 neck.ti,ab.\n17\u00a0 exp Musculoskeletal System/\n18\u00a0 musculoskeletal disorder$.mp.\n19\u00a0 or/12-18\n20\u00a0 11 and 19\n21\u00a0 exp Workplace/\n22\u00a0 exp Sick Leave/\n23\u00a0 exp Work/\n24\u00a0 or/21-23\n25\u00a0 24 and 20\nWorkplace interventions for neck pain in workers (Review)\nCopyright \u00a9 2011 The Cochrane Collaboration. Published by John Wiley & Sons, Ltd.\n65\n\nCochrane\nLibrary\nTrusted evidence.\nInformed decisions.\nBetter health.\n\u00a0\n\u00a0\nCochrane Database of Systematic Reviews", "pubmed_query": "(((((\"Workplace\"[Mesh])) OR ((\"Sick Leave\"[Mesh]))) OR ((\"Work\"[Mesh])))) AND ((((((((((((((randomized controlled trial[pt])) OR ((controlled clinical trial[pt]))) OR ((randomized[tiab]))) OR ((placebo[tiab]))) OR ((drug therapy[sh]))) OR ((randomly[tiab]))) OR ((trial[tiab]))) OR ((groups[tiab])))) NOT (((animals NOT (humans AND animals))[Mesh])))) AND (((((((((neck muscles[Mesh])) OR ((\"Neck\"[Mesh]))) OR ((\"neck pain\"[Mesh]))) OR ((whiplash injuries[Mesh]))) OR ((neck[tiab]))) OR ((\"Musculoskeletal System\"[Mesh]))) OR ((musculoskeletal disorder*[tiab]))))))", "notes": "mp_approximated", "is_success": false, "has_adjacency": false, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD008657", "title": "Housing improvements for health and associated socio-economic outcomes", "database": "MEDLINE", "raw_strategy": "1.\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 housing/\n2.\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 housing for the elderly/\n3.\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 public housing/\n4.\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 ((renovat$ or repair$) adj3 (home or homes or house or houses or housing)).ti,ab.\n5.\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 ((mite or mites or rat or rats or mouse or mice or cockroach$ or vermin or flea or fleas or infest$) adj3 (home or homes or house", "pubmed_query": "((mite OR mites OR rat OR rats OR mouse OR mice OR cockroach* OR vermin OR flea OR fleas OR infest*) AND (home OR homes OR house))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD008931", "title": "Interventions designed to prevent healthcare bed-related injuries in patients", "database": "MEDLINE (Ovid) 1950 to 21st December 2010", "raw_strategy": "1. Beds/\n2. (bed$1 or bedside$1 or bed?side$1).tw.\n3. ((side$1 or safety or security) adj3 rail$1).tw.\n4. (bedrail$1 or bed?rail$1 or siderail$1 or side?rail$1 or cotside$1 or cot?side$1).tw.\n5. (floormat* or floor?mat$1 or ((floor) adj3 mat$1)).tw.\n6. (exit$ adj3 (alarm$1 or sensor$1)).tw.\n7. (ultra-low or ((low$) adj3 height)).tw.\n8. (bed?height or bed?exit$ or bed?alarm$1 or bed?sensor$1 or bed?mat$1).tw.\n9. or/1-8\n10. Accidents/\n11. Accidental Falls/\n12. exp Accident Prevention/", "pubmed_query": "((((((((\"Beds\"[Mesh*NoExp])) OR (((bed*1 OR bedside*1 OR bed*side*1)[tiab]))) OR ((((side*1 OR safety OR security) AND rail*1)[tiab]))) OR (((bedrail*1 OR bed*rail*1 OR siderail*1 OR side*rail*1 OR cotside*1 OR cot*side*1)[tiab]))) OR (((floormat* OR floor*mat*1 OR ((floor) AND mat*1))[tiab]))) OR (((exit* AND (alarm*1 OR sensor*1))[tiab]))) OR (((ultra-low OR ((low*) AND height))[tiab]))) OR (((bed*height OR bed*exit* OR bed*alarm*1 OR bed*sensor*1 OR bed*mat*1)[tiab]))", "notes": "wildcard_approximated; adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": true, "has_mp": false, "has_near": false}, {"doi": "CD009467", "title": "Later school start times for supporting the education, health, and well-being of...", "database": "MEDLINE search strategy", "raw_strategy": "1 Adolescent/\n2 Students/\n3 teen$.ab,ti.\n4 adolescent$.ab,ti.\n5 high school students.ab,ti.\n6 \"young person$\".ab,ti.\n7 \"young people\".ab,ti.\n8 youth$.ab,ti.\n9 Schools/\n10 high school education.ab,ti.\n11 secondary education.ab,ti.\n12 secondary school.ab,ti.\n13 \"junior high school$\".ab,ti.\n14 middle school$.ab,ti.\n15 \"senior high school\".ab,ti.\n16 \"high school$\".ab,ti.\n17 (start* adj3 tim*).ab,ti.\n18 (late* adj3 start*).ab,ti.\n19 (earl* adj3 start*).ab,ti.\n20 (delay* adj3 start*).ab,ti.\n21 (delay* adj3 time*).ab,ti.\n22 (stagger$ adj3 start$).ab,ti.\n23 (stagger$ adj3 tim$).ab,ti.\n24 (split$ adj3 shif$).ab,ti.\n25 (double adj3 session$).ab,ti.\n26 (start$ adj2 school$).ab,ti.\n27 (tim$ adj2 school$).ab,ti.\n28 (time$ adj3 day).ab,ti.\n29 (begin$ adj3 day).ab,ti.\n30 (start$ adj3 day).ab,ti.\n31 ((double$ or morning or afernoon or evening or di\ufb00erent) adj3 shif$).ab,ti.\n32 (tim$ adj3 learn$).ab,ti.\nLater school start times for supporting the education, health, and well-being of high school students (Review)\nCopyright \u00a9 2017 The Cochrane Collaboration. Published by John Wiley & Sons, Ltd.\n52\n\nCochrane\nLibrary\nTrusted evidence.\nInformed decisions.\nBetter health.\n\u00a0\n\u00a0\nCochrane Database of Systematic Reviews\n33 ((earl$ or late$ or school$) adj3 schedul$).ab,ti.\n34 Wakefulness/\n35 sleep.ab,ti.\n36 chronobiology.ab,ti.\n37 \"human biological rhythm$\".ab,ti.\n38 circadian.ab,ti.\n39 \"phase shif\".ab,ti.\n40 or/1-8\n41 or/9-16\n42 or/17-39\n43 40 and 41 and 42", "pubmed_query": "(((((((((((\"Adolescent\"[Mesh*NoExp])) OR ((\"Students\"[Mesh*NoExp]))) OR ((teen*[tiab]))) OR ((adolescent*[tiab]))) OR ((high school students[tiab]))) OR ((\"young person*\"[tiab]))) OR ((\"young people\"[tiab]))) OR ((youth*[tiab])))) AND ((((((((((\"Schools\"[Mesh*NoExp])) OR ((high school education[tiab]))) OR ((secondary education[tiab]))) OR ((secondary school[tiab]))) OR ((\"junior high school*\"[tiab]))) OR ((middle school*[tiab]))) OR ((\"senior high school\"[tiab]))) OR ((\"high school*\"[tiab]))))) AND ((((((((((((((((((((((((((start* AND tim*)[tiab])) OR (((late* AND start*)[tiab]))) OR (((earl* AND start*)[tiab]))) OR (((delay* AND start*)[tiab]))) OR (((delay* AND time*)[tiab]))) OR (((stagger* AND start*)[tiab]))) OR (((stagger* AND tim*)[tiab]))) OR (((split* AND shif*)[tiab]))) OR (((double AND session*)[tiab]))) OR (((start* AND school*)[tiab]))) OR (((tim* AND school*)[tiab]))) OR (((time* AND day)[tiab]))) OR (((begin* AND day)[tiab]))) OR (((start* AND day)[tiab]))) OR ((((double* OR morning OR afernoon OR evening OR di\ufb00erent) AND shif*)[tiab]))) OR (((tim* AND learn*)[tiab]))) OR ((((earl* OR late* OR school*) AND schedul*)[tiab]))) OR ((\"Wakefulness\"[Mesh*NoExp]))) OR ((sleep[tiab]))) OR ((chronobiology[tiab]))) OR ((\"human biological rhythm*\"[tiab]))) OR ((circadian[tiab]))) OR ((\"phase shif\"[tiab]))))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD009604", "title": "Fortification of condiments and seasonings with iron for preventing anaemia and ...", "database": "MEDLINE and Medline in Progress (OVID)", "raw_strategy": "1. exp Food, Fortified/\n2. exp Condiments/\n3. exp Spices/\n4. exp Sodium Chloride, Dietary/\n5. exp Flavoring agents/\n6. ((fortif* or enrich or enhance*) adj3 (food* or iron)).ab,ti.\n7. ((salt or sodium chloride) adj (diet* or table or common)).ab,ti.\n8. exp Iron/ andfortif*.ab, ti.\n9. NaFeEDTA NaFeEDTA.ab,ti.\n10. (achar or anise or basil or caper or pepper or cardamom or cinnamon orchilli or chives or clove*).ab,ti.\n11. (coriander or cumin or Curcuma longa or cuceb cubeb or curry).ab,.ti.\n12. (dill or fennel or fenugreek or garlic or ginger).ab,ti.\n13. (marjoram or masala or mint or nutmeg or oregano).ab,ti.\n14. (paprika or parsley or rosemary or sage or savory or sesame or sorrel).ab,ti.\n15. (tarragon or thyme or turmeric or vanilla or wasabi or vinegar*).ab,ti.\n16. (MSG or monosodium glutamate).ab,ti.\n17. ((condiment* or seasoning* or flavo?r* or sauce* or spice* or herb*) adj3 (fortif* or enrich* or enhance*)).ab,ti.\n18. (flake* or powder* or blend* or granule*).ab,ti.\n19. (Stock cube* or gravy cube* or bouillon* or instant noodle).ab,ti.\n20. or/1-19\n21. exp Ferritins/bl, df [Blood Deficiency]\n22. exp Anemia, Iron-Deficiency/\n23. (an?emi* or iron deficien* or nonan?emic or h?emoglobin-free erythrocyte* or haemoglobin or h?emoglobin or serum ferritin).ab,ti.\n24. exp Hemoglobins/\n25. Iron/bl [Blood Deficiency] OR blood deficiency.ab,ti.\n26. 21 or 22 or 23 or 24 or 25\n27. 20 and 26\n28. exp animals/ not humans.sh.\n29. 27 not 28", "pubmed_query": "(((((((((((((((((((((((\"Food, Fortified\"[Mesh])) OR ((\"Condiments\"[Mesh]))) OR ((\"Spices\"[Mesh]))) OR ((\"Sodium Chloride, Dietary\"[Mesh]))) OR ((\"Flavoring agents\"[Mesh]))) OR ((((fortif* OR enrich OR enhance*) AND (food* OR iron))[tiab]))) OR ((((salt OR sodium chloride) AND (diet* OR table OR common))[tiab]))) OR ((\"Iron\"[Mesh]*.ab, ti.))) OR ((NaFeEDTA NaFeEDTA[tiab]))) OR (((achar OR anise OR basil OR caper OR pepper OR cardamom OR cinnamon orchilli OR chives OR clove*)[tiab]))) OR (((coriander OR cumin OR Curcuma longa OR cuceb cubeb OR curry).ab,[ti]))) OR (((dill OR fennel OR fenugreek OR garlic OR ginger)[tiab]))) OR (((marjoram OR masala OR mint OR nutmeg OR oregano)[tiab]))) OR (((paprika OR parsley OR rosemary OR sage OR savory OR sesame OR sorrel)[tiab]))) OR (((tarragon OR thyme OR turmeric OR vanilla OR wasabi OR vinegar*)[tiab]))) OR (((MSG OR monosodium glutamate)[tiab]))) OR ((((condiment* OR seasoning* OR flavo*r* OR sauce* OR spice* OR herb*) AND (fortif* OR enrich* OR enhance*))[tiab]))) OR (((flake* OR powder* OR blend* OR granule*)[tiab]))) OR (((Stock cube* OR gravy cube* OR bouillon* OR instant noodle)[tiab])))) AND (((((((\"Ferritins\"[Mesh][Blood Deficiency])) OR ((\"Anemia, Iron-Deficiency\"[Mesh]))) OR (((an*emi* OR iron deficien* OR nonan*emic OR h*emoglobin-free erythrocyte* OR haemoglobin OR h*emoglobin OR serum ferritin)[tiab]))) OR ((\"Hemoglobins\"[Mesh]))) OR ((\"Iron\"[Mesh*NoExp]bl [Blood Deficiency] OR blood deficiency[tiab])))))) NOT ((\"animals\"[Mesh][Mesh]))", "notes": "adjacency_converted_to_AND; wildcard_approximated", "is_success": false, "has_adjacency": true, "has_wildcard": true, "has_mp": false, "has_near": false}, {"doi": "CD009820", "title": "Welfare-to-work interventions and their e\ufb00ects on the mental and physical health...", "database": "Medline Ovid MEDLINE(R) 1946 to March Week 4 2016 15.4.16", "raw_strategy": "1. (never married adj2 (mother* or father* or parent*)).ab,ti.\n2. (separated adj2 (mother* or father* or parent*)).ab,ti.\n3. exp Single parent/\n4. exp Single-parent-family/\n5. fatherless famil*.ab,ti.\n6. fragile famil*.ab,ti.\n7. lone father*.ab,ti.\n8. Lone mother*.ab,ti.\n9. Lone parent*.ab,ti.\n10. motherless famil*.ab,ti.\n11. One parent*.ab,ti.", "pubmed_query": "One parent*[tiab]", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD009888", "title": "Electric fans for reducing adverse health impacts in heatwaves", "database": "MEDLINE, EMBASE and CINAHL", "raw_strategy": "1. MEDLINE; heatwave*.ti,ab; 122 results.\n2. MEDLINE; (heat AND wave*).ti,ab; 2408 results.\n3. MEDLINE; heat-wave*.ti,ab; 530 results.\n4. MEDLINE; (hot AND temperature*).ti,ab; 6302 results.\n5. MEDLINE; (high AND temperature*).ti,ab; 85060 results.\n6. MEDLINE; (hot AND weather).ti,ab; 547 results.\n7. MEDLINE; *EXTREME HEAT/; 36 results.", "pubmed_query": "MEDLINE; *\"EXTREME HEAT\"[Mesh*NoExp]; 36 results.", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD009888", "title": "Electric fans for reducing adverse health impacts in heatwaves", "database": "MEDLINE; *HEAT EXHAUSTION/; 1065 results.", "raw_strategy": "9. MEDLINE; *HEAT STRESS DISORDERS/; 1243 results.\n10. MEDLINE; 1 OR 2 OR 3 OR 4 OR 5 OR 6 OR 7 OR 8 OR 9; 93610 results.\n11. MEDLINE; fan*.ti,ab; 16246 results.\n12. MEDLINE; *AIR CONDITIONING/; 1155 results.\n13. MEDLINE; *AIR MOVEMENTS/; 606 results.\n14. MEDLINE; *BODY TEMPERATURE REGULATION/; 12284 results.\n15. MEDLINE; (evaporative AND cool*).ti,ab; 472 results.\n16. MEDLINE; 11 OR 12 OR 13 OR 14 OR 15; 30467 results.\n17. MEDLINE; 10 AND 16; 1757 results.\n18. EMBASE; heatwave*.ti,ab; 143 results.\n19. EMBASE; (heat AND wave*).ti,ab; 2427 results.\n20. EMBASE; heat-wave*.ti,ab; 610 results.\n21. EMBASE; (hot AND temperature*).ti,ab; 6851 results.\n22. EMBASE; (high AND temperature*).ti,ab; 89879 results.\n23. EMBASE; (hot AND weather).ti,ab; 647 results.\n24. EMBASE; *EXTREME HEAT/; 13563 results.\n25. EMBASE; *HEAT EXHAUSTION/; 619 results.\n26. EMBASE; *HEAT STRESS DISORDERS/; 873 results.\n27. EMBASE; 18 OR 19 OR 20 OR 21 OR 22 OR 23 OR 24 OR 25 OR 26; 109534 results.\n28. EMBASE; fan*.ti,ab; 18985 results.\n29. EMBASE; *AIR CONDITIONING/; 3825 results.\n30. EMBASE; *AIR MOVEMENTS/; 4247 results.\n31. EMBASE; *BODY TEMPERATURE REGULATION/; 11379 results.\n32. EMBASE; (evaporative AND cool*).ti,ab; 482 results.\n33. EMBASE; 28 OR 29 OR 30 OR 31 OR 32; 38538 results.\n34. EMBASE; 27 AND 33; 2259 results.\n35. CINAHL; heatwave*.ti,ab; 50 results.\n36. CINAHL; (heat AND wave*).ti,ab; 149 results.\n37. CINAHL; heat-wave*.ti,ab; 109 results.\n38. CINAHL; (hot AND temperature*).ti,ab; 379 results.\n39. CINAHL; (high AND temperature*).ti,ab; 1272 results.\n40. CINAHL; (hot AND weather).ti,ab; 106 results.\n41. CINAHL; *HEAT STRESS DISORDERS/; 353 results.\n42. CINAHL; *HEAT EXHAUSTION/; 159 results.\n43. CINAHL; 35 OR 36 OR 37 OR 38 OR 39 OR 40 OR 41 OR 42; 2217 results.\n44. CINAHL; fan*.ti,ab; 1385 results.\n45. CINAHL; *AIR CONDITIONING/; 59 results.\n46. CINAHL; *BODY TEMPERATURE REGULATION/; 549 results.\n47. CINAHL; (evaporative AND cool*).ti,ab; 14 results.\n48. CINAHL; 44 OR 45 OR 46 OR 47; 2003 results.\n49. CINAHL; 43 AND 48; 120 results.\n50. EMBASE; heatwave*.ti,ab; 143 results.\n51. EMBASE; ((heat adj4 wave*)).ti,ab; 733 results.\n52. EMBASE; (((hot OR high) adj3 temperature*)).ti,ab; 25219 results.\n53. EMBASE; (hot AND weather).ti,ab; 647 results.\n54. EMBASE; *HEAT/ OR *HEAT STRESS/; 15758 results.\n55. EMBASE; exp HEAT INJURY/; 5040 results.\n56. EMBASE; exp THERMAL EXPOSURE/; 2856 results.\n57. EMBASE; exp HEAT SHOCK RESPONSE/; 1949 results.\n58. EMBASE; (sunstroke* OR sun-strokes*).ti,ab; 38 results.\n59. EMBASE; ((thermal* OR heat) adj4 (discomfort* OR comfort* OR toleran* OR intoleran* OR distress* OR injur* OR illness* OR", "pubmed_query": "EMBASE; ((thermal* OR heat) AND (discomfort* OR comfort* OR toleran* OR intoleran* OR distress* OR injur* OR illness*))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD009888", "title": "Electric fans for reducing adverse health impacts in heatwaves", "database": "MEDLINE; (sunstroke* OR sun-stroke*).ti,ab; 54 results.", "raw_strategy": "78. MEDLINE; *HEAT STRESS DISORDERS/; 1243 results.\n79. MEDLINE; 70 OR 71 OR 72 OR 73 OR 74 OR 75 OR 76 OR 77 OR 78; 36773 results.\n80. MEDLINE; (fan OR fans OR fanned OR fanning).ti,ab; 3626 results.\n81. MEDLINE; (air adj2 (cooler* OR condition*)).ti,ab; 2793 results.\n82. MEDLINE; (AC OR climat* AND control*).ti,ab; 8897 results.\n83. MEDLINE; *AIR CONDITIONING/; 1155 results.\n84. MEDLINE; *AIR MOVEMENTS/; 606 results.\n85. MEDLINE; (evaporat* adj4 cool*).ti,ab; 437 results.\n86. MEDLINE; 80 OR 81 OR 82 OR 83 OR 84 OR 85; 16792 results.\n87. MEDLINE; 79 AND 86; 578 results.\n88. MEDLINE; 87 [Limit to: Humans]; 308 results.\n89. CINAHL; heatwave*.ti,ab; 50 results.\n90. CINAHL; (heat adj4 wave*).ti,ab; 113 results.\n91. CINAHL; (hot adj3 temperature*).ti,ab; 99 results.\n92. CINAHL; (high adj3 temperature*).ti,ab; 289 results.\n93. CINAHL; (hot AND weather).ti,ab; 106 results.\n94. CINAHL; *HEAT/; 1360 results.\n95. CINAHL; *HEAT EXHAUSTION/; 159 results.\n96. CINAHL; (heat ADJ discomfort*).ti,ab; 2 results.\n97. CINAHL; (heat ADJ comfort*).ti,ab; 5 results.\n98. CINAHL; (heat ADJ toleran*).ti,ab; 38 results.\n99. CINAHL; (heat ADJ intoleran*).ti,ab; 17 results.\n100. CINAHL; (heat ADJ distress*).ti,ab; 2 results.\n101. CINAHL; (heat ADJ injur*).ti,ab; 99 results.\n102. CINAHL; (heat ADJ illness*).ti,ab; 194 results.\n103. CINAHL; (heat ADJ trauma*).ti,ab; 15 results.\n104. CINAHL; (thermal* AND discomfort*).ti,ab; 35 results.\n105. CINAHL; (thermal* AND comfort*).ti,ab; 76 results.\n106. CINAHL; (thermal* AND toleran*).ti,ab; 82 results.\n107. CINAHL; (thermal* AND intoleran*).ti,ab; 9 results.\n108. CINAHL; (thermal* AND distress*).ti,ab; 23 results.\n109. CINAHL; (thermal* AND injur*).ti,ab; 810 results.\n110. CINAHL; (thermal* AND illness*).ti,ab; 39 results.\n111. CINAHL; (thermal* AND trauma*).ti,ab; 133 results.\n112. CINAHL; (sunstroke* OR sun-stroke*).ti,ab; 5 results.\n113. CINAHL; *HEAT STRESS DISORDERS/; 353 results.\n114. CINAHL; 89 OR 90 OR 91 OR 92 OR 93 OR 94 OR 95 OR 96 OR 97 OR 98 OR 99 OR 100 OR 101 OR 102 OR 103 OR 104 OR 105 OR 106 OR", "pubmed_query": "CINAHL; 89 OR 90 OR 91 OR 92 OR 93 OR 94 OR 95 OR 96 OR 97 OR 98 OR 99 OR 100 OR 101 OR 102 OR 103 OR 104 OR 105 OR 106", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD009905", "title": "Community coalition-driven interventions to reduce health disparities among raci...", "database": "Medline & Medline in Process (Ebsco interface) covers dates January 1990 - March 31, 2014.", "raw_strategy": "1.\nMH medically underserved area OR MH poverty areas OR MH vulnerable populations OR MH minority groups OR MH health status disparities", "pubmed_query": "MH medically underserved area OR MH poverty areas OR MH vulnerable populations OR MH minority groups OR MH health status disparities", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010067", "title": "Slum upgrading strategies involving physical environment and infrastructure inte...", "database": "MEDLINE and MEDLINE in Process", "raw_strategy": "1. poverty/ and (urban population/ or urban health/ or urbanization/)\n2. Poverty Areas/\n3. (slum or slums or shanty or shanties or shantyhouse* or barrio or barrios or favela* or kampung or tugurio* or ghetto or ghettos or bidon", "pubmed_query": "(slum OR slums OR shanty OR shanties OR shantyhouse* OR barrio OR barrios OR favela* OR kampung OR tugurio* OR ghetto OR ghettos OR bidon)", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010067", "title": "Slum upgrading strategies involving physical environment and infrastructure inte...", "database": "MEDLINE and MEDLINE in Process", "raw_strategy": "1. poverty/ and (urban population/ or urban health/ or urbanization/)\n2. Poverty Areas/\n3. (slum or slums or shanty or shanties or shantyhouse* or barrio or barrios or favela* or kampung or tugurio* or ghetto or ghettos or bidon", "pubmed_query": "(slum OR slums OR shanty OR shanties OR shantyhouse* OR barrio OR barrios OR favela* OR kampung OR tugurio* OR ghetto OR ghettos OR bidon)", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010246", "title": "School-based education programmes for the prevention of unintentional injuries i...", "database": "MEDLINE syntax]", "raw_strategy": "19. (injur* adj3 (prevent* or control* or reduc*)).ab,ti.\n20. 18 or 19\n21. 17 and 20", "pubmed_query": "(((injur* AND (prevent* OR control* OR reduc*))[tiab]))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010321", "title": "Interventions for preventing abuse in the elderly", "database": "MEDLINE on OVID, searched 30 August 2015", "raw_strategy": "1. (Geriatric* or Elder* or old-age* or pensioner*).ti,ab.\n2. ((Aging or aged or senior or old*) adj2 (wom#n or m#n or lady or ladies or adult* or citizen* or resident or residents or population*1 or", "pubmed_query": "((Aging OR aged OR senior OR old*) AND (wom#n OR m#n OR lady OR ladies OR adult* OR citizen* OR resident OR residents OR population*1))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010578", "title": "Community-based supplementary feeding for food insecure, vulnerable and malnouri...", "database": "MEDLINE In-Process and Other In-Process Citations Ovid", "raw_strategy": "1. (nutriti* adj (advice or assisted or enrich* or intervention* or program* or support)).ti,ab,kf,hw.\n2. ((fortif* or supplement*) adj3 (protein or carbohydrate or fat or energy or calorie*)).ti,ab,kf.\n3. ((fortif* or formula or formulated or supplement* or therapeutic*) adj (diet* or feed* or fed or food* or meal? or nutriti* or milk)).ti,ab,kf.\n4. ((fortif* or supplement*) adj (calcium or phosph* or iron or iodine or magnesium or zinc or vitamin* or mineral*)).ti,ab,kf,hw.\n5. or/1-4", "pubmed_query": "(((((nutriti* AND (advice OR assisted OR enrich* OR intervention* OR program* OR support)).ti,ab,kf,hw.)) OR ((((fortif* OR supplement*) AND (protein OR carbohydrate OR fat OR energy OR calorie*)).ti,ab,kf.))) OR ((((fortif* OR formula OR formulated OR supplement* OR therapeutic*) AND (diet* OR feed* OR fed OR food* OR meal* OR nutriti* OR milk)).ti,ab,kf.))) OR ((((fortif* OR supplement*) AND (calcium OR phosph* OR iron OR iodine OR magnesium OR zinc OR vitamin* OR mineral*)).ti,ab,kf,hw.))", "notes": "adjacency_converted_to_AND; wildcard_approximated", "is_success": false, "has_adjacency": true, "has_wildcard": true, "has_mp": false, "has_near": false}, {"doi": "CD010578", "title": "Community-based supplementary feeding for food insecure, vulnerable and malnouri...", "database": "MEDLINE EPub Ahead of Print Ovid", "raw_strategy": "1. (nutriti* adj (advice or assisted or enrich* or intervention* or program* or support)).ti,ab,kf,hw.\n2. ((fortif* or supplement*) adj3 (protein or carbohydrate or fat or energy or calorie*)).ti,ab,kf.\n3. ((fortif* or formula or formulated or supplement* or therapeutic*) adj (diet* or feed* or fed or food* or meal? or nutriti* or milk)).ti,ab,kf.\n4. ((fortif* or supplement*) adj (calcium or phosph* or iron or iodine or magnesium or zinc or vitamin* or mineral*)).ti,ab,kf,hw.\n5. or/1-4", "pubmed_query": "(((((nutriti* AND (advice OR assisted OR enrich* OR intervention* OR program* OR support)).ti,ab,kf,hw.)) OR ((((fortif* OR supplement*) AND (protein OR carbohydrate OR fat OR energy OR calorie*)).ti,ab,kf.))) OR ((((fortif* OR formula OR formulated OR supplement* OR therapeutic*) AND (diet* OR feed* OR fed OR food* OR meal* OR nutriti* OR milk)).ti,ab,kf.))) OR ((((fortif* OR supplement*) AND (calcium OR phosph* OR iron OR iodine OR magnesium OR zinc OR vitamin* OR mineral*)).ti,ab,kf,hw.))", "notes": "adjacency_converted_to_AND; wildcard_approximated", "is_success": false, "has_adjacency": true, "has_wildcard": true, "has_mp": false, "has_near": false}, {"doi": "CD010734", "title": "Iodine fortification of foods and condiments, other than salt, for preventing io...", "database": "MEDLINE\u00a0and MEDLINE (R) In-Process", "raw_strategy": "1. Iodine/\n2. iod*.ti,ab.\n3. 1 or 2\n4. Food, Fortified/\n5. ((fortif* or enrich* or boost* or enhanc* or increas* or improv* or add*) adj3 food*).tw.\n6. ((fortif* or enrich* or boost* or enhanc* or increas* or improv* or add*) adj3 diet).tw.\n7. 4 or 5 or 6\n8. 3 and 7", "pubmed_query": "((((\"Iodine\"[Mesh*NoExp])) OR ((iod*[tiab])))) AND (((((\"Food, Fortified\"[Mesh*NoExp])) OR ((((fortif* OR enrich* OR boost* OR enhanc* OR increas* OR improv* OR add*) AND food*)[tiab]))) OR ((((fortif* OR enrich* OR boost* OR enhanc* OR increas* OR improv* OR add*) AND diet)[tiab]))))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD010919", "title": "Interventions to reduce ambient particulate matter air pollution and their e\ufb00ect...", "database": "MEDLINE & MEDLINE In-Process", "raw_strategy": "1. exp Air Pollution/\n2. exp Particulate Matter/\n3. (Air adj2 (pollut* or quality or ambient)).ti,ab.\n4. (atmospher* adj2 pollut*).ti,ab.\n5. (Particulate matter or ambient particulate or PM or PM1* or PM2* or PM10* or ultrafine particulate* or ultrafine particle* or UFP).ti,ab.\n6. (Coarse particle* or Soot or Black smoke or Black carbon or Elemental carbon or wood smoke).ti,ab.\n7. ((Emission* or air or atmospher*) adj2 (anthropogenic or motor or vehicle or road or power generation or indust* or combustion or", "pubmed_query": "((Emission* OR air OR atmospher*) AND (anthropogenic OR motor OR vehicle OR road OR power generation OR indust* OR combustion))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD011218", "title": "Education, incentive, and engineering-based interventions to promote the use of ...", "database": "Ovid MEDLINE(R), Ovid MEDLINE(R) In-Process & Other Non-Indexed Citations, Ovid MEDLINE(R) Daily and Ovid OLDMEDLINE(R)", "raw_strategy": "1. Seat Belts/\n2. Seat Belts/ut [Utilization]\n3. (seatbelt* or seat-belts).ab,ti.", "pubmed_query": "(seatbelt* OR seat-belts)[tiab]", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD011779", "title": "Strategies to improve the implementation of healthy eating, physical activity an...", "database": "MEDLINE search strategy", "raw_strategy": "1. exp obesity/\n2. Weight Gain/\n3. exp Weight Loss/\n4. obes*.mp.\n5. (weight gain or weight loss).mp.\n6. (overweight or over weight or overeat* or over eat*).mp.\n7. weight change*.mp.\n8. ((bmi or body mass index) adj2 (gain or loss or change)).mp.\n9. 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8\n10. exp Exercise/\n11. physical inactivity.mp.\n12. physical activity.mp.\n13. Motor Activity/\n14. (physical education or physical training).mp. [mp=title, abstract, original title, name of substance word, subject heading word, floating", "pubmed_query": "((((((((\"obesity\"[Mesh])) OR ((\"Weight Gain\"[Mesh*NoExp]))) OR ((\"Weight Loss\"[Mesh]))) OR ((obes*[tiab]))) OR (((weight gain OR weight loss)[tiab]))) OR (((overweight OR over weight OR overeat* OR over eat*)[tiab]))) OR ((weight change*[tiab]))) OR ((((bmi OR body mass index) AND (gain OR loss OR change))[tiab]))", "notes": "mp_approximated; adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": true, "has_near": false}, {"doi": "CD011856", "title": "Impact of institutional smoking bans on reducing harms and secondhand smoke expo...", "database": "MEDLINE", "raw_strategy": "1. Air Pollution/lj, pc [Legislation & Jurisprudence, Prevention & Control]\n2. Tobacco Smoke Pollution/lj, pc [Legislation & Jurisprudence, Prevention & Control]\n3. Air Pollution, Indoor/lj, pc [Legislation & Jurisprudence, Prevention & Control]\n4. (clean adj1 air).ti,ab.\n5. Smoke-Free Policy/\n6. ((smok* or tobacco) adj4 (ban or bans or banned or law or laws or policy or policies or prohibit* or restrict* or regulat* or legislat* or", "pubmed_query": "((smok* OR tobacco) AND (ban OR bans OR banned OR law OR laws OR policy OR policies OR prohibit* OR restrict* OR regulat* OR legislat*))", "notes": "adjacency_converted_to_AND", "is_success": false, "has_adjacency": true, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD012219", "title": "Humidification of indoor air for preventing or reducing dryness symptoms or uppe...", "database": "MEDLINE search strategy", "raw_strategy": "Ovid MEDLINE(R) In-Process & Other Non-Indexed Citations, Ovid MEDLINE(R) Daily, Ovid MEDLINE(R) and Ovid OLDMEDLINE(R) 1946 to\nAugust 14.\n\u00a0\n#\nSearches\n1\nHumidity/\n2\n(humid* or moist* or damp* or \"water vapo?r\").ti,ab.\n3\n(indoor* or inside or building* or room* or plant* or house* or facilit*).ti,ab.\n4\n(1 or 2) and 3\n5\nair conditioning/ or ventilation/\n6\n(air adj3 (condition* or cool* or ventilat* or sparg*)).ti,ab.\n7\nventilat*.ti,ab.\n8\n4 or 5 or 6 or (7 and 3)\n9\n((indoor and (air or environment* or climate)) adj3 quality).mp. or (\"indoor air\" or \"indoor cli-\nmate\").ti,ab.\n10\n(iaq or ieq).ti,ab.\n11\nor/8-10\n12\nEye Diseases/ or exp Skin Diseases/ or Nose Diseases/ or Nasal Obstruction/ or rhinitis/ or rhinitis,\natrophic/ or rhinitis, vasomotor/ or Respiration Disorders/ or exp Sinusitis/ or Cough/ or Hoarse-\nness/ or Common Cold/ or exp Laryngitis/ or Pharyngitis/ or exp Tonsillitis/ or exp Otitis Media/ or\nKeratoconjunctivitis Sicca/ or\nexp Dry Eye Syndromes/\n13\n(dryness or irritation* or rhinitis or rhinosinusitis or Cough or Hoarseness or \"common cold\" or\nflu or Laryngitis or Pharyngitis or Tonsillit* or \"Otitis Media\" or \"Keratoconjunctivitis sicca\" or\nsneez*).ti,ab.\n14\nSick Building Syndrome/ or sick building syndrome.ti,ab.\n15\n((nose or nasal) adj3 (disease* or symptom* or runny or running or stu\ufb00ed or dry* or obstruc-\ntion)).ti,ab.\n16\n(throat adj3 (disease* or symptom* or sore or irritat* or inflam*)).ti,ab.\n17\n(eye* adj3 (disease* or symptom* or red* or dry* or burning or irritat*)).ti,ab.\n18\n(skin adj3 (disease* or symptom* or condition* or red* or irritat* or itch* or dry* or rash)).ti,ab.\n19\n((sinus or respiratory) adj3 (disease* or symptom* or condition* or health)).ti,ab.\n20\nAbsenteeism/ or Sick Leave/\n\u00a0\nHumidification of indoor air for preventing or reducing dryness symptoms or upper respiratory infections in educational settings and at\nthe workplace (Review)\nCopyright \u00a9 2021 The Cochrane Collaboration. Published by John Wiley & Sons, Ltd.\n90\n\nCochrane\nLibrary\nTrusted evidence.\nInformed decisions.\nBetter health.\n\u00a0\n\u00a0\nCochrane Database of Systematic Reviews\n21\n((sick or illness or disability) adj3 (leave* or day*)).ti,ab.\n22\n((absenteeism or attendance or attainment or productivity or performance) adj9 (job or work or of-\nfice or school or preschool* or \"pre-school*\" or kindergar#en* or daycare or \"day care\")).ti,ab.\n23\n(\"mucous membrane\" or mucosa or mucosal).ti,ab.\n24\nmucous membrane/ or exp respiratory mucosa/\n25\nor/12-24\n26\nWorkplace/ or exp Schools/ or Child Day Care Centers/ or Occupational Exposure/ or Environment,\nControlled/ or (office? or Work* or job? or laborator* or school* or preschool* or \"pre-school*\" or\nkindergar#en* or daycare or \"day care\" or classroom* or room* or education* or occupation*).ti,ab.\n27\n11 and 25 and 26\n\u00a0\u00a0(Continued)", "pubmed_query": "((((((4 OR 5 OR 6 OR (7 AND 3))) OR ((((indoor AND (air OR environment* OR climate)) AND quality)[tiab] OR (\"indoor air\" OR \"indoor cli-))) OR (((iaq OR ieq)[tiab])))) AND (((((((((((((((\"Eye Diseases\"[Mesh*NoExp] OR \"Skin Diseases\"[Mesh]/ \"OR Nasal Obstruction\"[Mesh*NoExp] \"OR rhinitis\"[Mesh*NoExp] OR rhinitis,)) OR (((dryness OR irritation* OR rhinitis OR rhinosinusitis OR Cough OR Hoarseness OR \"common cold\" OR))) OR ((\"Sick Building Syndrome\"[Mesh*NoExp] OR sick building syndrome[tiab]))) OR ((((nose OR nasal) AND (disease* OR symptom* OR runny OR running OR stu\ufb00ed OR dry* OR obstruc-))) OR (((throat AND (disease* OR symptom* OR sore OR irritat* OR inflam*))[tiab]))) OR (((eye* AND (disease* OR symptom* OR red* OR dry* OR burning OR irritat*))[tiab]))) OR (((skin AND (disease* OR symptom* OR condition* OR red* OR irritat* OR itch* OR dry* OR rash))[tiab]))) OR ((((sinus OR respiratory) AND (disease* OR symptom* OR condition* OR health))[tiab]))) OR ((\"Absenteeism\"[Mesh*NoExp] \"OR Sick Leave\"[Mesh*NoExp]))) OR ((((sick OR illness OR disability) AND (leave* OR day*))[tiab]))) OR ((((absenteeism OR attendance OR attainment OR productivity OR performance) AND (job OR work OR of-))) OR (((\"mucous membrane\" OR mucosa OR mucosal)[tiab]))) OR ((\"mucous membrane\"[Mesh*NoExp] OR \"respiratory mucosa\"[Mesh]))))) AND ((\"Workplace\"[Mesh*NoExp] OR \"Schools\"[Mesh]/ \"OR Occupational Exposure\"[Mesh*NoExp] OR Environment,))))))))", "notes": "wildcard_approximated; adjacency_converted_to_AND; mp_approximated", "is_success": false, "has_adjacency": true, "has_wildcard": true, "has_mp": true, "has_near": false}, {"doi": "CD012307", "title": "Exercise training for adult lung transplant recipients", "database": "MEDLINE", "raw_strategy": "1. Lung Transplantation/\n2. lung transplant$.tw.\n3. Organ Transplantation/\n4. Transplantation/\n5. or/1-4\n6. exp Exercise Therapy/\n7. exp Exercise/\n8. Physical Exertion/\n9. Exercise Test/", "pubmed_query": "((((\"Lung Transplantation\"[Mesh*NoExp])) OR ((lung transplant*[tiab]))) OR ((\"Organ Transplantation\"[Mesh*NoExp]))) OR ((\"Transplantation\"[Mesh*NoExp]))", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD012415", "title": "Taxation of the fat content of foods for reducing their consumption and preventi...", "database": "MEDLINE (inferred from Ovid syntax)", "raw_strategy": "2. exp Government Programs/ec, lj [Economics, Legislation & Jurisprudence]\n3. exp Health Policy/ec, lj [Economics, Legislation & Jurisprudence]\n4. exp Food Dispensers, Automatic/ec, lj, sn [Economics, Legislation & Jurisprudence, Statistics & Numerical Data]\n5. exp Health Promotion/ec, lj [Economics, Legislation & Jurisprudence]\n6. exp Nutrition Policy/ec, lj [Economics, Legislation & Jurisprudence]\n7. exp Public Health/ec, lj [Economics, Legislation & Jurisprudence]", "pubmed_query": "\"Public Health\"[Mesh][Economics, Legislation & Jurisprudence]", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD013380", "title": "Interventions in outside-school hours childcare settings for promoting physical ...", "database": "MEDLINE search strategy", "raw_strategy": "Line\nTerm\nResults\n1\nexp Child/\n1,946,540\n2\nschool teacher/\n1696\n3\n(child* or preschool* or pre school* or school age* or schoolage* or schoolboy*\nor schoolgirl* or school student* or boy? or girl? or teacher? or facilitator? or\neducator? or instructor?).mp. [mp=title, abstract, original title, name of sub-\nstance word, subject heading word, floating sub-heading word, keyword head-\ning word, organism supplementary concept word, protocol supplementary\nconcept word, rare disease supplementary concept word, unique identifier,\nsynonyms\n2,669,553\n4\n1 or 2 or 3\n2,669,553\n5\nexp exercise/\n204,192\n6\nmotor activity/\n97,557\n7\nexp physical fitness/\n31,507\n8\n\"Physical Education and Training\"/\n13,636\n9\nwalking/\n34,126\n10\nstair climbing/\n190\n11\nexp sports/\n188,593\n12\ndancing/\n2982\n13\nexp exercise therapy/\n53,104\n14\n(exercis* or physical* activ* or physical education or physical training or mo-\ntor activity or fitness or aerobic? or walk* or stair climb* or climb* stair? or\nsport* or athletics or athletic performance or physical endurance or base-\nball or basketball or bicycling or cycling or boxing or football or golf or gym-\nnastics or hockey or martial arts or tai ji or tai chi or mountaineering or ten-\nnis or badminton or run or running or ran or \"track and field\" or jog or jogging\nor jogged or cross country or orienteering or skating or skiing or volleyball or\nswim or swimming or swam or weight lifting or wrestling or dance or danc-\ning or danced or yoga or active lifestyle).mp. [mp=title, abstract, original title,\nname of substance word, subject heading word, floating sub-heading word,\nkeyword heading word, organism supplementary concept word, protocol sup-\nplementary concept word, rare disease supplementary concept word, unique\nidentifier, synonyms]\n1,109,352\n15\nor/5-14\n1,119,901\n16\n(after school* or afterschool* or before school* or out of school* or outside\nschool hours or OOSH or vacation or holiday or OSHC or ASP).mp. [mp=title,\nabstract, original title, name of substance word, subject heading word, float-\n42,612\n\u00a0\nInterventions in outside-school hours childcare settings for promoting physical activity amongst schoolchildren aged 4 to 12 years\n(Review)\nCopyright \u00a9 2021 The Cochrane Collaboration. Published by John Wiley & Sons, Ltd.\n53\n\nCochrane\nLibrary\nTrusted evidence.\nInformed decisions.\nBetter health.\n\u00a0\n\u00a0\nCochrane Database of Systematic Reviews\ning sub-heading word, keyword heading word, organism supplementary con-\ncept word, protocol supplementary concept word, rare disease supplementary\nconcept word, unique identifier, synonyms]\n17\nrandomized controlled trial.pt.\n523,440\n18\ncontrolled clinical trial.pt.\n94,075\n19\nrandomized.ab.\n513,079\n20\nplacebo.ab.\n216,224\n21\nclinical trials as topic.sh.\n194,742\n22\nrandomly.ab.\n352,994\n23\ntrial.ti.\n236,747\n24\n17 or 18 or 19 or 20 or 21 or 22 or 23\n1,352,842\n25\nexp animals/ not humans.sh.\n4,790,230\n26\n24 not 25\n1,246,009\n27\n4 and 15 and 16\n1354\n28\n26 and 27\n261\n\u00a0\n\u00a0\n\u00a0\n\u00a0\u00a0(Continued)", "pubmed_query": "(((((((((((randomized controlled trial[pt])) OR ((controlled clinical trial[pt]))) OR ((randomized[tiab]))) OR ((placebo[tiab]))) OR ((clinical trials as topic[Mesh]))) OR ((randomly[tiab]))) OR ((trial[ti])))) NOT ((\"animals\"[Mesh][Mesh])))) AND ((((((((\"Child\"[Mesh])) OR ((\"school teacher\"[Mesh*NoExp]))) OR (((child* OR preschool* OR pre school* OR school age* OR schoolage* OR schoolboy*)))) AND (((((((((((\"exercise\"[Mesh])) OR ((\"motor activity\"[Mesh*NoExp]))) OR ((\"physical fitness\"[Mesh]))) OR ((\"Physical Education AND Training\"/))) OR ((\"walking\"[Mesh*NoExp]))) OR ((\"stair climbing\"[Mesh*NoExp]))) OR ((\"dancing\"[Mesh*NoExp]))) OR ((\"exercise therapy\"[Mesh]))) OR (((exercis* OR physical* activ* OR physical education OR physical training OR mo-))))) AND (((after school* OR afterschool* OR before school* OR out of school* OR outside)))))))", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}, {"doi": "CD013632", "title": "Video calls for reducing social isolation and loneliness in older people: a rapi...", "database": "MEDLINE (inferred from Ovid syntax)", "raw_strategy": "1. exp Aged/ (3074019)\n2. exp Geriatrics/ (29740)\n3. Homes for the Aged/ (13720)\n4. Nursing Homes/ (34370)", "pubmed_query": "\"Nursing Homes\"[Mesh*NoExp]", "notes": "success", "is_success": true, "has_adjacency": false, "has_wildcard": false, "has_mp": false, "has_near": false}];
+        
+        // Syntax highlighting functions
+        function highlightOvid(text) {
+            let html = escapeHtml(text);
+            // MeSH terms: exp Something/ or Something/
+            html = html.replace(/(exp\s+)?([A-Za-z][A-Za-z\s\-]+)\//g, '<span class="mesh">$1$2/</span>');
+            // Field tags: .tw. .ti. .ab. etc.
+            html = html.replace(/\.(tw|ti|ab|mp|sh|kf|kw|pt|fs)\./gi, '<span class="field">.$1.</span>');
+            // Boolean operators
+            html = html.replace(/\b(AND|OR|NOT|or|and|not)\b/g, '<span class="bool">$1</span>');
+            // Line numbers at start
+            html = html.replace(/^(\d+)\.\s/gm, '<span class="num">$1.</span> ');
+            // Wildcards
+            html = html.replace(/(\$|\*)/g, '<span class="wild">$1</span>');
+            // Adjacency
+            html = html.replace(/\b(adj\d*)\b/gi, '<span class="bool">$1</span>');
+            return html;
+        }
+        
+        function highlightPubMed(text) {
+            let html = escapeHtml(text);
+            // Field tags: [Mesh], [tiab], etc.
+            html = html.replace(/\[(Mesh(?::NoExp)?|tiab|ti|pt|sh|la|ta)\]/gi, '<span class="field">[$1]</span>');
+            // Boolean operators
+            html = html.replace(/\b(AND|OR|NOT)\b/g, '<span class="bool">$1</span>');
+            // Wildcards
+            html = html.replace(/\*/g, '<span class="wild">*</span>');
+            // Quoted terms (MeSH-like)
+            html = html.replace(/"([^"]+)"/g, '<span class="mesh">"$1"</span>');
+            return html;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatNotes(notes) {
+            if (notes === 'success') return '<strong>Direct translation</strong> — No syntax modifications needed';
+            const parts = [];
+            if (notes.includes('adjacency')) parts.push('<strong>adj→AND</strong>: Adjacency operators converted');
+            if (notes.includes('wildcard')) parts.push('<strong>?→*</strong>: Single-char wildcards approximated');
+            if (notes.includes('mp_approximated')) parts.push('<strong>.mp.→[tiab]</strong>: Multi-purpose field mapped');
+            if (notes.includes('near')) parts.push('<strong>NEAR→AND</strong>: Proximity operator converted');
+            return parts.join(' | ') || notes;
+        }
+        
+        function createCard(t, index) {
+            const isSuccess = t.is_success;
+            return `
+                <div class="translation-card" data-index="${index}" data-success="${isSuccess}">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <div class="card-info">
+                            <div class="card-doi">${t.doi}</div>
+                            <div class="card-title">${escapeHtml(t.title)}</div>
+                        </div>
+                        <div class="card-badges">
+                            ${isSuccess 
+                                ? '<span class="badge badge-success">Direct</span>' 
+                                : '<span class="badge badge-modified">Adapted</span>'}
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="code-comparison">
+                            <div class="code-panel ovid">
+                                <div class="code-label">
+                                    <span>📥</span> Ovid MEDLINE Syntax
+                                </div>
+                                <div class="code-block">${highlightOvid(t.raw_strategy)}</div>
+                            </div>
+                            <div class="code-panel pubmed">
+                                <div class="code-label">
+                                    <span>📤</span> PubMed Query
+                                </div>
+                                <div class="code-block">${highlightPubMed(t.pubmed_query)}</div>
+                            </div>
+                        </div>
+                        <div class="translation-notes">
+                            <span class="notes-icon">${isSuccess ? '✓' : '⚙️'}</span>
+                            <span class="notes-text">${formatNotes(t.notes)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function toggleCard(header) {
+            header.classList.toggle('expanded');
+            header.nextElementSibling.classList.toggle('show');
+        }
+        
+        function renderCards(data) {
+            const list = document.getElementById('translationsList');
+            if (data.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>No translations match your search</p>
+                    </div>
+                `;
+                return;
+            }
+            list.innerHTML = data.map((t, i) => createCard(t, i)).join('');
+        }
+        
+        // Initial render
+        renderCards(translations);
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = translations.filter(t => 
+                t.doi.toLowerCase().includes(query) ||
+                t.title.toLowerCase().includes(query) ||
+                t.raw_strategy.toLowerCase().includes(query) ||
+                t.pubmed_query.toLowerCase().includes(query)
+            );
+            renderCards(filtered);
+        });
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                let filtered = translations;
+                if (filter === 'success') {
+                    filtered = translations.filter(t => t.is_success);
+                } else if (filter === 'modified') {
+                    filtered = translations.filter(t => !t.is_success);
+                }
+                
+                searchInput.value = '';
+                renderCards(filtered);
+            });
+        });
+    </script>
+</body>
+</html>
