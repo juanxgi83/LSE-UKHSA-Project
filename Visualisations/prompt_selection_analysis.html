@@ -13,7 +13,7 @@
             color: #1E293B;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         
         .controls {
             display: flex;
@@ -63,11 +63,50 @@
         }
         .reset-btn:hover { background: #E2E8F0; color: #475569; }
         
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .chart-section {
+            flex: 1;
+            min-width: 0;
+        }
+        
         .chart-container {
             background: white;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .prompt-labels {
+            display: flex;
+            justify-content: space-around;
+            padding: 0 60px;
+            margin-top: -10px;
+        }
+        
+        .prompt-label-btn {
+            padding: 8px 16px;
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prompt-label-btn:hover {
+            border-color: #3B82F6;
+            color: #3B82F6;
+            background: #EFF6FF;
+        }
+        .prompt-label-btn.active {
+            border-color: #3B82F6;
+            color: white;
+            background: #3B82F6;
         }
         
         .legend {
@@ -109,6 +148,122 @@
             color: #94A3B8;
             margin-top: 12px;
         }
+        
+        /* Prompt Details Panel */
+        .prompt-panel {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        
+        .prompt-details {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .prompt-details.empty {
+            background: #F8FAFC;
+            border: 2px dashed #E2E8F0;
+        }
+        
+        .prompt-details-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94A3B8;
+        }
+        
+        .prompt-details-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        
+        .prompt-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .prompt-title-icon {
+            width: 24px;
+            height: 24px;
+            background: #3B82F6;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .prompt-description {
+            font-size: 14px;
+            color: #64748B;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .prompt-section {
+            margin-bottom: 16px;
+        }
+        
+        .prompt-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94A3B8;
+            margin-bottom: 8px;
+        }
+        
+        .prompt-structure {
+            list-style: none;
+        }
+        
+        .prompt-structure li {
+            font-size: 13px;
+            color: #475569;
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            border-left: 2px solid #E2E8F0;
+            margin-left: 8px;
+        }
+        
+        .prompt-structure li::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 12px;
+            width: 8px;
+            height: 8px;
+            background: #3B82F6;
+            border-radius: 50%;
+        }
+        
+        .prompt-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .feature-tag {
+            padding: 4px 10px;
+            background: #EFF6FF;
+            color: #3B82F6;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -124,18 +279,37 @@
                     <option value="rec">Recall</option>
                 </select>
             </div>
-            <button class="reset-btn" onclick="resetHighlight()">Reset Highlight</button>
+            <button class="reset-btn" onclick="resetHighlight()">Reset All</button>
         </div>
         
-        <div class="chart-container">
-            <div id="chart"></div>
-            <div class="legend" id="legend"></div>
-            <div class="instructions">Click on a line or legend item to highlight that model</div>
+        <div class="main-content">
+            <div class="chart-section">
+                <div class="chart-container">
+                    <div id="chart"></div>
+                    <div class="prompt-labels" id="prompt-labels"></div>
+                    <div class="legend" id="legend"></div>
+                    <div class="instructions">Click prompt labels to see details • Click lines to highlight models</div>
+                </div>
+            </div>
+            
+            <div class="prompt-panel">
+                <div class="prompt-details empty" id="prompt-details">
+                    <div class="prompt-details-placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                        </svg>
+                        <p>Click a prompt label below the chart to see its details</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
     <script>
         const chartData = {"Gemma 3 27B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [81.17, 76.0, 84.67, 87.67, 81.83], "prec": [52.04, 45.22, 59.64, 86.94, 53.16], "rec": [84.17, 93.33, 74.17, 45.0, 80.0], "f1": [64.25, 60.9, 66.06, 59.26, 63.84], "f2": [74.86, 76.92, 70.68, 49.79, 72.63], "color": "#F59E0B"}, "Llama 3.1 8B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [79.0, 50.17, 74.67, 53.5, 83.17], "prec": [48.85, 28.54, 43.45, 29.8, 55.84], "rec": [82.5, 99.17, 86.67, 97.5, 77.5], "f1": [61.27, 44.32, 57.85, 45.64, 64.87], "f2": [72.41, 66.33, 72.25, 67.02, 71.88], "color": "#3B82F6"}, "Mistral Small 3.2 24B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [89.17, 87.5, 88.5, 87.67, 88.5], "prec": [76.87, 66.64, 70.74, 82.19, 70.99], "rec": [65.83, 76.67, 73.33, 49.17, 72.5], "f1": [70.9, 71.22, 71.95, 61.41, 71.67], "f2": [67.77, 74.37, 72.76, 53.41, 72.15], "color": "#EF4444"}, "Mixtral 8x7B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [84.11, 83.21, 87.72, 89.78, 89.46], "prec": [65.35, 55.81, 75.21, 72.92, 68.77], "rec": [67.2, 82.83, 50.23, 52.42, 55.73], "f1": [66.23, 66.65, 59.98, 60.9, 61.52], "f2": [66.8, 75.48, 53.7, 55.49, 57.9], "color": "#10B981"}};
+        const promptDescriptions = {"Baseline": {"title": "Baseline Prompt", "description": "Standard prompt structure with role definition and task instructions.", "structure": ["Role: \"You are an expert systematic reviewer...\"", "Task: Classification instruction with criteria", "Input: Review objective + Paper abstract", "Output: JSON with decision and reasoning"], "key_features": ["Explicit role persona", "Structured output format", "Reasoning requirement"]}, "No Role": {"title": "No Role Prompt", "description": "Same as baseline but without the expert role/persona definition.", "structure": ["Task: Direct classification instruction", "Criteria: Inclusion/exclusion guidelines", "Input: Review objective + Paper abstract", "Output: JSON with decision and reasoning"], "key_features": ["No persona framing", "Task-focused", "Same output structure"]}, "System Prompt": {"title": "System Prompt Variant", "description": "Uses the system message for role definition, user message for task.", "structure": ["System: \"You are an expert systematic reviewer...\"", "User: Task instruction + Review + Abstract", "Output: JSON with decision and reasoning"], "key_features": ["Separated role (system msg)", "Cleaner user message", "API-native approach"]}, "Minimal": {"title": "Minimal Prompt", "description": "Stripped-down prompt with only essential instructions.", "structure": ["Brief task description", "Review objective", "Paper abstract", "Simple output instruction"], "key_features": ["Concise", "No detailed guidelines", "Relies on model reasoning"]}, "Detailed": {"title": "Detailed Prompt", "description": "Comprehensive prompt with extensive guidelines and examples.", "structure": ["Role: Detailed expert description", "Task: Comprehensive classification rules", "Criteria: Explicit inclusion/exclusion factors", "Examples: Sample classifications", "Output: Structured JSON with reasoning"], "key_features": ["Extensive guidance", "Example-based", "Explicit decision criteria"]}};
+        const promptOrder = ['Baseline', 'No Role', 'System Prompt', 'Minimal', 'Detailed'];
+        
         const metricLabels = {
             'acc': 'Accuracy (%)',
             'prec': 'Precision (%)',
@@ -145,6 +319,79 @@
         };
         
         let highlightedModel = null;
+        let selectedPrompt = null;
+        
+        function buildPromptLabels() {
+            const container = document.getElementById('prompt-labels');
+            container.innerHTML = '';
+            
+            promptOrder.forEach(prompt => {
+                const btn = document.createElement('button');
+                btn.className = 'prompt-label-btn';
+                btn.textContent = prompt;
+                btn.onclick = () => selectPrompt(prompt);
+                container.appendChild(btn);
+            });
+        }
+        
+        function selectPrompt(prompt) {
+            if (selectedPrompt === prompt) {
+                selectedPrompt = null;
+            } else {
+                selectedPrompt = prompt;
+            }
+            updatePromptLabels();
+            updatePromptDetails();
+        }
+        
+        function updatePromptLabels() {
+            const btns = document.querySelectorAll('.prompt-label-btn');
+            btns.forEach((btn, i) => {
+                const prompt = promptOrder[i];
+                btn.classList.toggle('active', selectedPrompt === prompt);
+            });
+        }
+        
+        function updatePromptDetails() {
+            const panel = document.getElementById('prompt-details');
+            
+            if (!selectedPrompt) {
+                panel.className = 'prompt-details empty';
+                panel.innerHTML = `
+                    <div class="prompt-details-placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                        </svg>
+                        <p>Click a prompt label below the chart to see its details</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const info = promptDescriptions[selectedPrompt];
+            panel.className = 'prompt-details';
+            
+            const structureHtml = info.structure.map(s => `<li>${s}</li>`).join('');
+            const featuresHtml = info.key_features.map(f => `<span class="feature-tag">${f}</span>`).join('');
+            
+            panel.innerHTML = `
+                <div class="prompt-title">
+                    <span class="prompt-title-icon">P</span>
+                    ${info.title}
+                </div>
+                <p class="prompt-description">${info.description}</p>
+                
+                <div class="prompt-section">
+                    <div class="prompt-section-title">Structure</div>
+                    <ul class="prompt-structure">${structureHtml}</ul>
+                </div>
+                
+                <div class="prompt-section">
+                    <div class="prompt-section-title">Key Features</div>
+                    <div class="prompt-features">${featuresHtml}</div>
+                </div>
+            `;
+        }
         
         function buildLegend() {
             const legend = document.getElementById('legend');
@@ -192,20 +439,21 @@
             });
             
             const layout = {
-                height: 450,
-                margin: { l: 60, r: 40, t: 40, b: 60 },
+                height: 400,
+                margin: { l: 60, r: 40, t: 20, b: 30 },
                 font: { family: 'Segoe UI, sans-serif' },
                 xaxis: {
-                    title: { text: 'Prompt Type', font: { size: 13 } },
-                    tickfont: { size: 12 },
-                    gridcolor: '#E5E7EB'
+                    tickfont: { size: 1, color: 'transparent' },
+                    gridcolor: '#E5E7EB',
+                    fixedrange: true
                 },
                 yaxis: {
                     title: { text: metricLabels[metric], font: { size: 13 } },
                     tickfont: { size: 12 },
                     gridcolor: '#E5E7EB',
                     range: [0, 100],
-                    zeroline: false
+                    zeroline: false,
+                    fixedrange: true
                 },
                 showlegend: false,
                 hovermode: 'closest',
@@ -213,9 +461,8 @@
                 paper_bgcolor: 'white'
             };
             
-            Plotly.react('chart', traces, layout, { responsive: true });
+            Plotly.react('chart', traces, layout, { responsive: true, displayModeBar: false });
             
-            // Add click handler for traces
             document.getElementById('chart').on('plotly_click', function(data) {
                 if (data.points && data.points[0]) {
                     const clickedModel = data.points[0].data.name;
@@ -237,7 +484,10 @@
         
         function resetHighlight() {
             highlightedModel = null;
+            selectedPrompt = null;
             updateChart();
+            updatePromptLabels();
+            updatePromptDetails();
         }
         
         function updateLegendHighlight() {
@@ -256,6 +506,7 @@
         }
         
         // Initialize
+        buildPromptLabels();
         buildLegend();
         updateChart();
     </script>
