@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Selection Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #F8FAFC; 
+            color: #1E293B;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748B;
+        }
+        
+        select {
+            padding: 8px 12px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        select:focus { outline: none; border-color: #3B82F6; }
+        
+        .reset-btn {
+            padding: 8px 16px;
+            background: #F1F5F9;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { background: #E2E8F0; color: #475569; }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .legend-item:hover { background: #F8FAFC; }
+        .legend-item.active { border-color: currentColor; background: #F8FAFC; }
+        .legend-item.faded { opacity: 0.3; }
+        
+        .legend-color {
+            width: 24px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .legend-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .instructions {
+            text-align: center;
+            font-size: 12px;
+            color: #94A3B8;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <span class="control-label">Metric:</span>
+                <select id="metric-select" onchange="updateChart()">
+                    <option value="f1">F1 Score</option>
+                    <option value="f2">F2 Score</option>
+                    <option value="acc">Accuracy</option>
+                    <option value="prec">Precision</option>
+                    <option value="rec">Recall</option>
+                </select>
+            </div>
+            <button class="reset-btn" onclick="resetHighlight()">Reset Highlight</button>
+        </div>
+        
+        <div class="chart-container">
+            <div id="chart"></div>
+            <div class="legend" id="legend"></div>
+            <div class="instructions">Click on a line or legend item to highlight that model</div>
+        </div>
+    </div>
+    
+    <script>
+        const chartData = {"Gemma 3 27B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [81.17, 76.0, 84.67, 87.67, 81.83], "prec": [52.04, 45.22, 59.64, 86.94, 53.16], "rec": [84.17, 93.33, 74.17, 45.0, 80.0], "f1": [64.25, 60.9, 66.06, 59.26, 63.84], "f2": [74.86, 76.92, 70.68, 49.79, 72.63], "color": "#F59E0B"}, "Llama 3.1 8B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [79.0, 50.17, 74.67, 53.5, 83.17], "prec": [48.85, 28.54, 43.45, 29.8, 55.84], "rec": [82.5, 99.17, 86.67, 97.5, 77.5], "f1": [61.27, 44.32, 57.85, 45.64, 64.87], "f2": [72.41, 66.33, 72.25, 67.02, 71.88], "color": "#3B82F6"}, "Mistral Small 3.2 24B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [89.17, 87.5, 88.5, 87.67, 88.5], "prec": [76.87, 66.64, 70.74, 82.19, 70.99], "rec": [65.83, 76.67, 73.33, 49.17, 72.5], "f1": [70.9, 71.22, 71.95, 61.41, 71.67], "f2": [67.77, 74.37, 72.76, 53.41, 72.15], "color": "#EF4444"}, "Mixtral 8x7B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [84.11, 83.21, 87.72, 89.78, 89.46], "prec": [65.35, 55.81, 75.21, 72.92, 68.77], "rec": [67.2, 82.83, 50.23, 52.42, 55.73], "f1": [66.23, 66.65, 59.98, 60.9, 61.52], "f2": [66.8, 75.48, 53.7, 55.49, 57.9], "color": "#10B981"}};
+        const metricLabels = {
+            'acc': 'Accuracy (%)',
+            'prec': 'Precision (%)',
+            'rec': 'Recall (%)',
+            'f1': 'F1 Score (%)',
+            'f2': 'F2 Score (%)'
+        };
+        
+        let highlightedModel = null;
+        
+        function buildLegend() {
+            const legend = document.getElementById('legend');
+            legend.innerHTML = '';
+            
+            Object.keys(chartData).forEach(model => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.style.color = chartData[model].color;
+                item.innerHTML = `
+                    <div class="legend-color" style="background: ${chartData[model].color}"></div>
+                    <span class="legend-label">${model}</span>
+                `;
+                item.onclick = () => highlightModel(model);
+                legend.appendChild(item);
+            });
+        }
+        
+        function updateChart() {
+            const metric = document.getElementById('metric-select').value;
+            const traces = [];
+            
+            Object.keys(chartData).forEach(model => {
+                const data = chartData[model];
+                const isHighlighted = highlightedModel === null || highlightedModel === model;
+                
+                traces.push({
+                    x: data.prompts,
+                    y: data[metric],
+                    name: model,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: data.color,
+                        width: isHighlighted ? 3 : 2
+                    },
+                    marker: {
+                        size: isHighlighted ? 10 : 6,
+                        color: data.color,
+                        line: { color: 'white', width: isHighlighted ? 2 : 1 }
+                    },
+                    opacity: isHighlighted ? 1 : 0.2,
+                    hovertemplate: `<b>${model}</b><br>%{x}<br>${metricLabels[metric].replace(' (%)', '')}: %{y:.1f}%<extra></extra>`
+                });
+            });
+            
+            const layout = {
+                height: 450,
+                margin: { l: 60, r: 40, t: 40, b: 60 },
+                font: { family: 'Segoe UI, sans-serif' },
+                xaxis: {
+                    title: { text: 'Prompt Type', font: { size: 13 } },
+                    tickfont: { size: 12 },
+                    gridcolor: '#E5E7EB'
+                },
+                yaxis: {
+                    title: { text: metricLabels[metric], font: { size: 13 } },
+                    tickfont: { size: 12 },
+                    gridcolor: '#E5E7EB',
+                    range: [0, 100],
+                    zeroline: false
+                },
+                showlegend: false,
+                hovermode: 'closest',
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white'
+            };
+            
+            Plotly.react('chart', traces, layout, { responsive: true });
+            
+            // Add click handler for traces
+            document.getElementById('chart').on('plotly_click', function(data) {
+                if (data.points && data.points[0]) {
+                    const clickedModel = data.points[0].data.name;
+                    highlightModel(clickedModel);
+                }
+            });
+            
+            updateLegendHighlight();
+        }
+        
+        function highlightModel(model) {
+            if (highlightedModel === model) {
+                highlightedModel = null;
+            } else {
+                highlightedModel = model;
+            }
+            updateChart();
+        }
+        
+        function resetHighlight() {
+            highlightedModel = null;
+            updateChart();
+        }
+        
+        function updateLegendHighlight() {
+            const items = document.querySelectorAll('.legend-item');
+            items.forEach((item, i) => {
+                const model = Object.keys(chartData)[i];
+                item.classList.remove('active', 'faded');
+                if (highlightedModel !== null) {
+                    if (highlightedModel === model) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.add('faded');
+                    }
+                }
+            });
+        }
+        
+        // Initialize
+        buildLegend();
+        updateChart();
+    </script>
+</body>
+</html>
