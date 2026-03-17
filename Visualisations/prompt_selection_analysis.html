@@ -65,30 +65,30 @@
         
         .main-content {
             display: flex;
-            gap: 20px;
+            gap: 24px;
         }
         
         .chart-section {
             flex: 1;
-            min-width: 0;
-        }
-        
-        .chart-container {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
+        #chart { width: 100%; height: 400px; }
+        
         .prompt-labels {
             display: flex;
-            justify-content: space-around;
-            padding: 0 60px;
-            margin-top: -10px;
+            justify-content: space-between;
+            padding: 0 50px;
+            margin-top: 16px;
+            gap: 8px;
         }
         
         .prompt-label-btn {
-            padding: 8px 16px;
+            flex: 1;
+            padding: 10px 8px;
             background: #F8FAFC;
             border: 2px solid #E2E8F0;
             border-radius: 8px;
@@ -97,6 +97,8 @@
             color: #64748B;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
         }
         .prompt-label-btn:hover {
             border-color: #3B82F6;
@@ -151,7 +153,7 @@
         
         /* Prompt Details Panel */
         .prompt-panel {
-            width: 320px;
+            width: 380px;
             flex-shrink: 0;
         }
         
@@ -165,103 +167,92 @@
             transition: all 0.3s ease;
         }
         
-        .prompt-details.empty {
-            background: #F8FAFC;
-            border: 2px dashed #E2E8F0;
-        }
-        
-        .prompt-details-placeholder {
+        .prompt-placeholder {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
             color: #94A3B8;
         }
         
-        .prompt-details-placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 12px;
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
             opacity: 0.5;
+        }
+        
+        .placeholder-text {
+            font-size: 14px;
+            line-height: 1.5;
         }
         
         .prompt-title {
             font-size: 18px;
             font-weight: 600;
             color: #1E293B;
-            margin-bottom: 8px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         
         .prompt-title-icon {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             background: #3B82F6;
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 12px;
-        }
-        
-        .prompt-description {
             font-size: 14px;
-            color: #64748B;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            font-weight: 700;
         }
         
         .prompt-section {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         
         .prompt-section-title {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
+            color: #64748B;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #94A3B8;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         
-        .prompt-structure {
-            list-style: none;
+        .prompt-text-box {
+            background: #1E293B;
+            color: #E2E8F0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
         }
         
-        .prompt-structure li {
-            font-size: 13px;
-            color: #475569;
-            padding: 6px 0;
-            padding-left: 20px;
-            position: relative;
-            border-left: 2px solid #E2E8F0;
-            margin-left: 8px;
-        }
-        
-        .prompt-structure li::before {
-            content: '';
-            position: absolute;
-            left: -5px;
-            top: 12px;
-            width: 8px;
-            height: 8px;
+        .prompt-text-box .placeholder {
             background: #3B82F6;
-            border-radius: 50%;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }
         
         .prompt-features {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
         }
         
         .feature-tag {
-            padding: 4px 10px;
             background: #EFF6FF;
             color: #3B82F6;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 500;
         }
     </style>
@@ -279,26 +270,22 @@
                     <option value="rec">Recall</option>
                 </select>
             </div>
-            <button class="reset-btn" onclick="resetHighlight()">Reset All</button>
+            <button class="reset-btn" onclick="resetHighlight()">Reset Highlight</button>
         </div>
         
         <div class="main-content">
             <div class="chart-section">
-                <div class="chart-container">
-                    <div id="chart"></div>
-                    <div class="prompt-labels" id="prompt-labels"></div>
-                    <div class="legend" id="legend"></div>
-                    <div class="instructions">Click prompt labels to see details • Click lines to highlight models</div>
-                </div>
+                <div id="chart"></div>
+                <div id="prompt-labels" class="prompt-labels"></div>
+                <div id="legend" class="legend"></div>
+                <div class="instructions">Click on a model line or legend to highlight it</div>
             </div>
             
             <div class="prompt-panel">
-                <div class="prompt-details empty" id="prompt-details">
-                    <div class="prompt-details-placeholder">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
-                        </svg>
-                        <p>Click a prompt label below the chart to see its details</p>
+                <div id="prompt-details" class="prompt-details">
+                    <div class="prompt-placeholder">
+                        <div class="placeholder-icon">📋</div>
+                        <div class="placeholder-text">Click on a prompt label below the chart to see the prompt details</div>
                     </div>
                 </div>
             </div>
@@ -307,7 +294,7 @@
     
     <script>
         const chartData = {"Gemma 3 27B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [81.17, 76.0, 84.67, 87.67, 81.83], "prec": [52.04, 45.22, 59.64, 86.94, 53.16], "rec": [84.17, 93.33, 74.17, 45.0, 80.0], "f1": [64.25, 60.9, 66.06, 59.26, 63.84], "f2": [74.86, 76.92, 70.68, 49.79, 72.63], "color": "#F59E0B"}, "Llama 3.1 8B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [79.0, 50.17, 74.67, 53.5, 83.17], "prec": [48.85, 28.54, 43.45, 29.8, 55.84], "rec": [82.5, 99.17, 86.67, 97.5, 77.5], "f1": [61.27, 44.32, 57.85, 45.64, 64.87], "f2": [72.41, 66.33, 72.25, 67.02, 71.88], "color": "#3B82F6"}, "Mistral Small 3.2 24B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [89.17, 87.5, 88.5, 87.67, 88.5], "prec": [76.87, 66.64, 70.74, 82.19, 70.99], "rec": [65.83, 76.67, 73.33, 49.17, 72.5], "f1": [70.9, 71.22, 71.95, 61.41, 71.67], "f2": [67.77, 74.37, 72.76, 53.41, 72.15], "color": "#EF4444"}, "Mixtral 8x7B": {"prompts": ["Baseline", "No Role", "System Prompt", "Minimal", "Detailed"], "acc": [84.11, 83.21, 87.72, 89.78, 89.46], "prec": [65.35, 55.81, 75.21, 72.92, 68.77], "rec": [67.2, 82.83, 50.23, 52.42, 55.73], "f1": [66.23, 66.65, 59.98, 60.9, 61.52], "f2": [66.8, 75.48, 53.7, 55.49, 57.9], "color": "#10B981"}};
-        const promptDescriptions = {"Baseline": {"title": "Baseline Prompt", "description": "Standard prompt structure with role definition and task instructions.", "structure": ["Role: \"You are an expert systematic reviewer...\"", "Task: Classification instruction with criteria", "Input: Review objective + Paper abstract", "Output: JSON with decision and reasoning"], "key_features": ["Explicit role persona", "Structured output format", "Reasoning requirement"]}, "No Role": {"title": "No Role Prompt", "description": "Same as baseline but without the expert role/persona definition.", "structure": ["Task: Direct classification instruction", "Criteria: Inclusion/exclusion guidelines", "Input: Review objective + Paper abstract", "Output: JSON with decision and reasoning"], "key_features": ["No persona framing", "Task-focused", "Same output structure"]}, "System Prompt": {"title": "System Prompt Variant", "description": "Uses the system message for role definition, user message for task.", "structure": ["System: \"You are an expert systematic reviewer...\"", "User: Task instruction + Review + Abstract", "Output: JSON with decision and reasoning"], "key_features": ["Separated role (system msg)", "Cleaner user message", "API-native approach"]}, "Minimal": {"title": "Minimal Prompt", "description": "Stripped-down prompt with only essential instructions.", "structure": ["Brief task description", "Review objective", "Paper abstract", "Simple output instruction"], "key_features": ["Concise", "No detailed guidelines", "Relies on model reasoning"]}, "Detailed": {"title": "Detailed Prompt", "description": "Comprehensive prompt with extensive guidelines and examples.", "structure": ["Role: Detailed expert description", "Task: Comprehensive classification rules", "Criteria: Explicit inclusion/exclusion factors", "Examples: Sample classifications", "Output: Structured JSON with reasoning"], "key_features": ["Extensive guidance", "Example-based", "Explicit decision criteria"]}};
+        const promptDescriptions = {"Baseline": {"title": "Baseline Prompt", "prompt_text": "You are an expert systematic reviewer with extensive experience in evaluating scientific literature for inclusion in systematic reviews.\n\nYour task is to determine whether a research paper should be INCLUDED or EXCLUDED from a systematic review based on the review's objective and the paper's abstract.\n\n**Review Objective:** {review_objective}\n\n**Paper Abstract:** {abstract}\n\nAnalyze the abstract carefully and determine if this paper meets the inclusion criteria for the systematic review. Respond with a JSON object containing your decision and reasoning.", "key_features": ["Explicit role persona", "Structured output format", "Reasoning requirement"]}, "No Role": {"title": "No Role Prompt", "prompt_text": "Determine whether the following research paper should be INCLUDED or EXCLUDED from a systematic review.\n\n**Review Objective:** {review_objective}\n\n**Paper Abstract:** {abstract}\n\nAnalyze whether this paper meets the inclusion criteria. Respond with a JSON object containing your decision (1 for include, 0 for exclude) and your reasoning.", "key_features": ["No persona framing", "Task-focused", "Direct instruction"]}, "System Prompt": {"title": "System Prompt Variant", "prompt_text": "[SYSTEM MESSAGE]\nYou are an expert systematic reviewer specializing in evidence synthesis and critical appraisal of research literature.\n\n[USER MESSAGE]\nEvaluate this paper for inclusion in the systematic review.\n\n**Review Objective:** {review_objective}\n\n**Paper Abstract:** {abstract}\n\nRespond with JSON: {\"decision\": 1 or 0, \"reasoning\": \"...\"}", "key_features": ["Separated role (system msg)", "Cleaner user message", "API-native approach"]}, "Minimal": {"title": "Minimal Prompt", "prompt_text": "Include or exclude this paper?\n\nReview: {review_objective}\n\nAbstract: {abstract}\n\nRespond: {\"decision\": 1/0, \"reasoning\": \"...\"}", "key_features": ["Concise", "No detailed guidelines", "Relies on model reasoning"]}, "Detailed": {"title": "Detailed Prompt", "prompt_text": "You are a senior systematic reviewer with 15+ years of experience in evidence-based medicine and research synthesis.\n\n**TASK:** Evaluate whether the following paper should be INCLUDED (1) or EXCLUDED (0) from a systematic review.\n\n**INCLUSION CRITERIA:**\n- Paper directly addresses the review objective\n- Study design is appropriate (RCT, cohort, case-control, etc.)\n- Population/intervention/outcome align with review scope\n- Sufficient methodological quality indicators\n\n**EXCLUSION CRITERIA:**\n- Off-topic or tangentially related\n- Wrong study type (editorials, commentaries, protocols)\n- Population/setting mismatch\n- Duplicate or superseded study\n\n**Review Objective:** {review_objective}\n\n**Paper Abstract:** {abstract}\n\nProvide your assessment as JSON with decision and detailed reasoning.", "key_features": ["Extensive guidance", "Explicit criteria", "Detailed reasoning required"]}};
         const promptOrder = ['Baseline', 'No Role', 'System Prompt', 'Minimal', 'Detailed'];
         
         const metricLabels = {
@@ -356,34 +343,32 @@
             const panel = document.getElementById('prompt-details');
             
             if (!selectedPrompt) {
-                panel.className = 'prompt-details empty';
                 panel.innerHTML = `
-                    <div class="prompt-details-placeholder">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
-                        </svg>
-                        <p>Click a prompt label below the chart to see its details</p>
+                    <div class="prompt-placeholder">
+                        <div class="placeholder-icon">📋</div>
+                        <div class="placeholder-text">Click on a prompt label below the chart to see the prompt details</div>
                     </div>
                 `;
                 return;
             }
             
             const info = promptDescriptions[selectedPrompt];
-            panel.className = 'prompt-details';
-            
-            const structureHtml = info.structure.map(s => `<li>${s}</li>`).join('');
             const featuresHtml = info.key_features.map(f => `<span class="feature-tag">${f}</span>`).join('');
+            
+            // Format prompt text with highlighted placeholders
+            const formattedPrompt = info.prompt_text
+                .replace(/\{review_objective\}/g, '<span class="placeholder">{review_objective}</span>')
+                .replace(/\{abstract\}/g, '<span class="placeholder">{abstract}</span>');
             
             panel.innerHTML = `
                 <div class="prompt-title">
                     <span class="prompt-title-icon">P</span>
                     ${info.title}
                 </div>
-                <p class="prompt-description">${info.description}</p>
                 
                 <div class="prompt-section">
-                    <div class="prompt-section-title">Structure</div>
-                    <ul class="prompt-structure">${structureHtml}</ul>
+                    <div class="prompt-section-title">Prompt Template</div>
+                    <div class="prompt-text-box">${formattedPrompt}</div>
                 </div>
                 
                 <div class="prompt-section">
@@ -416,7 +401,8 @@
             
             Object.keys(chartData).forEach(model => {
                 const data = chartData[model];
-                const isHighlighted = highlightedModel === null || highlightedModel === model;
+                const opacity = highlightedModel === null ? 1 : (highlightedModel === model ? 1 : 0.15);
+                const width = highlightedModel === model ? 4 : 2;
                 
                 traces.push({
                     x: data.prompts,
@@ -424,53 +410,42 @@
                     name: model,
                     type: 'scatter',
                     mode: 'lines+markers',
-                    line: {
-                        color: data.color,
-                        width: isHighlighted ? 3 : 2
-                    },
-                    marker: {
-                        size: isHighlighted ? 10 : 6,
-                        color: data.color,
-                        line: { color: 'white', width: isHighlighted ? 2 : 1 }
-                    },
-                    opacity: isHighlighted ? 1 : 0.2,
-                    hovertemplate: `<b>${model}</b><br>%{x}<br>${metricLabels[metric].replace(' (%)', '')}: %{y:.1f}%<extra></extra>`
+                    line: { color: data.color, width: width },
+                    marker: { size: 10, color: data.color },
+                    opacity: opacity,
+                    hovertemplate: `<b>${model}</b><br>%{x}: %{y:.1f}%<extra></extra>`
                 });
             });
             
             const layout = {
-                height: 400,
-                margin: { l: 60, r: 40, t: 20, b: 30 },
-                font: { family: 'Segoe UI, sans-serif' },
+                title: {
+                    text: 'Model Performance Across Prompt Variants',
+                    font: { size: 18, color: '#1E293B' }
+                },
                 xaxis: {
+                    title: '',
                     tickfont: { size: 1, color: 'transparent' },
-                    gridcolor: '#E5E7EB',
-                    fixedrange: true
+                    gridcolor: '#E2E8F0'
                 },
                 yaxis: {
-                    title: { text: metricLabels[metric], font: { size: 13 } },
-                    tickfont: { size: 12 },
-                    gridcolor: '#E5E7EB',
-                    range: [0, 100],
-                    zeroline: false,
-                    fixedrange: true
+                    title: metricLabels[metric],
+                    gridcolor: '#E2E8F0',
+                    range: [0, 100]
                 },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
                 showlegend: false,
                 hovermode: 'closest',
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white'
+                margin: { t: 60, b: 40, l: 60, r: 30 }
             };
             
-            Plotly.react('chart', traces, layout, { responsive: true, displayModeBar: false });
+            Plotly.react('chart', traces, layout, {responsive: true});
             
+            // Add click handler
             document.getElementById('chart').on('plotly_click', function(data) {
-                if (data.points && data.points[0]) {
-                    const clickedModel = data.points[0].data.name;
-                    highlightModel(clickedModel);
-                }
+                const model = data.points[0].data.name;
+                highlightModel(model);
             });
-            
-            updateLegendHighlight();
         }
         
         function highlightModel(model) {
@@ -480,29 +455,28 @@
                 highlightedModel = model;
             }
             updateChart();
-        }
-        
-        function resetHighlight() {
-            highlightedModel = null;
-            selectedPrompt = null;
-            updateChart();
-            updatePromptLabels();
-            updatePromptDetails();
+            updateLegendHighlight();
         }
         
         function updateLegendHighlight() {
             const items = document.querySelectorAll('.legend-item');
-            items.forEach((item, i) => {
-                const model = Object.keys(chartData)[i];
+            items.forEach(item => {
+                const label = item.querySelector('.legend-label').textContent;
                 item.classList.remove('active', 'faded');
-                if (highlightedModel !== null) {
-                    if (highlightedModel === model) {
+                if (highlightedModel) {
+                    if (label === highlightedModel) {
                         item.classList.add('active');
                     } else {
                         item.classList.add('faded');
                     }
                 }
             });
+        }
+        
+        function resetHighlight() {
+            highlightedModel = null;
+            updateChart();
+            updateLegendHighlight();
         }
         
         // Initialize
