@@ -13,11 +13,47 @@
             overflow: hidden;
         }
         
+        .toggle-container {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748B;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn:hover {
+            background: #F1F5F9;
+        }
+        
+        .toggle-btn.active {
+            background: #3B82F6;
+            color: white;
+        }
+        
         .svg-container {
             width: 100vw;
             height: 100vh;
             overflow: hidden;
             cursor: grab;
+            padding-top: 60px;
         }
         
         .svg-container:active { cursor: grabbing; }
@@ -26,12 +62,33 @@
             transform-origin: 0 0;
             transition: transform 0.1s ease-out;
         }
+        
+        .view-desc, .view-file { display: none; }
+        .view-desc.active, .view-file.active { display: block; }
+        
+        .help-text {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #64748B;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
+    <div class="toggle-container">
+        <button class="toggle-btn active" data-view="desc">Description View</button>
+        <button class="toggle-btn" data-view="file">Filename View</button>
+    </div>
+    
     <div class="svg-container" id="container">
         <div class="svg-wrapper" id="wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" width="1055" height="653" viewBox="0 0 1055 653">
+            <div class="view-desc active"><svg xmlns="http://www.w3.org/2000/svg" width="1055" height="653" viewBox="0 0 1055 653" class="workflow-svg" data-view="desc">
 <defs>
 <filter id="sh" x="-5%" y="-5%" width="112%" height="118%"><feDropShadow dx="1.5" dy="2.5" stdDeviation="4" flood-opacity="0.11"/></filter>
 <filter id="shL" x="-4%" y="-4%" width="110%" height="114%"><feDropShadow dx="1" dy="1.5" stdDeviation="2.5" flood-opacity="0.07"/></filter>
@@ -55,7 +112,7 @@
 <rect x="393.3333333333333" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
 <text x="463.3333333333333" y="63.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">PubMed / NCBI</text><text x="463.3333333333333" y="77.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">Entrez API</text>
 <rect x="560.0" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
-<text x="630.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">LLM Backends</text><text x="630.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">(Ollama · Anthropic</text><text x="630.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">OpenAI · Google)</text>
+<text x="630.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">LLM Backends</text><text x="630.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">(Ollama · OpenAI</text><text x="630.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">· Google Gemini)</text>
 <rect x="60" y="160" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
 <circle cx="64" cy="164" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
 <text x="64" y="168" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">0</text>
@@ -75,17 +132,17 @@
 <rect x="560" y="480" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
 <circle cx="564" cy="484" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
 <text x="564" y="488" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">4</text>
-<text x="630.0" y="501.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Evaluate LLMs</text><text x="630.0" y="516.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">(4-Phase Pipeline)</text>
+<text x="630.0" y="501.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">Evaluate LLMs</text><text x="630.0" y="516.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1E3A5F">(3-Step Pipeline)</text>
 <rect x="770" y="160" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
-<text x="892.5" y="173.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">review_metadata.csv</text><text x="892.5" y="187.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">categorized_references.csv</text><text x="892.5" y="201.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">search_strategies.csv</text>
+<text x="892.5" y="173.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">Review metadata, references,</text><text x="892.5" y="187.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">and search strategies</text><text x="892.5" y="201.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(3 CSVs)</text>
 <rect x="770" y="240" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
-<text x="892.5" y="253.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">referenced_paper_abstracts.csv</text><text x="892.5" y="267.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">doi_pmid_cache.csv</text><text x="892.5" y="281.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(included → label = 1)</text>
+<text x="892.5" y="253.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">Paper abstracts with PMIDs,</text><text x="892.5" y="267.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">DOI-PMID cache</text><text x="892.5" y="281.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(included papers → label=1)</text>
 <rect x="770" y="320" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
-<text x="892.5" y="340.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">pubmed_excluded_abstracts.csv</text><text x="892.5" y="354.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(excluded → label = 0)</text>
+<text x="892.5" y="333.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">Excluded paper abstracts</text><text x="892.5" y="347.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">from PubMed searches</text><text x="892.5" y="361.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#065F46">(excluded papers → label=0)</text>
 <rect x="770" y="400" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
-<text x="892.5" y="420.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">ground_truth_validation_dataset.csv</text><text x="892.5" y="434.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(balanced + contamination-checked)</text>
+<text x="892.5" y="413.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">Ground truth dataset</text><text x="892.5" y="427.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(balanced, deduplicated,</text><text x="892.5" y="441.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">contamination-checked)</text>
 <rect x="770" y="480" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
-<text x="892.5" y="500.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">Data/results/phase*_*.csv</text><text x="892.5" y="514.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(metrics + predictions)</text>
+<text x="892.5" y="493.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">Evaluation metrics</text><text x="892.5" y="507.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">and predictions per model</text><text x="892.5" y="521.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" fill="#991B1B">(step*_*.csv files)</text>
 <path d="M 130.0,215 L 130.0,267.5 L 185,267.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
 <path d="M 255.0,295 L 255.0,347.5 L 310,347.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
 <path d="M 380.0,375 L 380.0,427.5 L 435,427.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
@@ -103,7 +160,7 @@
 <rect x="25" y="573" width="1005" height="55" rx="10" fill="white" fill-opacity="0.6" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="8 4"/>
 <rect x="40" y="588" width="15" height="15" rx="3.5" fill="#FEF3C7" stroke="#D97706" stroke-width="1.2"/>
 <text x="61" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Manual data input</text>
-<text x="61" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(Cochrane Library — Public Health)</text>
+<text x="61" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(Cochrane Library)</text>
 <rect x="235" y="588" width="15" height="15" rx="3.5" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.2"/>
 <text x="256" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">External APIs</text>
 <text x="256" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(CrossRef, PubMed, LLMs)</text>
@@ -116,23 +173,123 @@
 <rect x="820" y="588" width="15" height="15" rx="3.5" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/>
 <text x="841" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Key outputs</text>
 <text x="841" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(ground truth + results)</text>
-</svg>
+</svg></div>
+            <div class="view-file"><svg xmlns="http://www.w3.org/2000/svg" width="1055" height="653" viewBox="0 0 1055 653" class="workflow-svg" data-view="file">
+<defs>
+<filter id="sh" x="-5%" y="-5%" width="112%" height="118%"><feDropShadow dx="1.5" dy="2.5" stdDeviation="4" flood-opacity="0.11"/></filter>
+<filter id="shL" x="-4%" y="-4%" width="110%" height="114%"><feDropShadow dx="1" dy="1.5" stdDeviation="2.5" flood-opacity="0.07"/></filter>
+<marker id="aP" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#3B82F6" stroke="none"/></marker>
+<marker id="aI" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#D97706" stroke="none"/></marker>
+<marker id="aA" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#7C3AED" stroke="none"/></marker>
+<marker id="aC" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#10B981" stroke="none"/></marker>
+<marker id="aK" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0,0.5 L 10,3.5 L 0,6.5 Z" fill="#EF4444" stroke="none"/></marker>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F8FAFC"/><stop offset="50%" stop-color="#EFF6FF"/><stop offset="100%" stop-color="#F0F4FF"/></linearGradient>
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 40" stroke="#E2E8F0" stroke-width="0.4" opacity="0.35"/></pattern>
+</defs>
+<rect width="1055" height="653" fill="url(#bg)"/>
+<rect width="1055" height="653" fill="url(#grid)" opacity="0.25"/>
+<rect x="25" y="12" width="710" height="100" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="380.0" y="28" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">EXTERNAL INPUTS &amp; DATA SOURCES</text>
+<rect x="25" y="130" width="710" height="425" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="380.0" y="146" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">PIPELINE</text>
+<rect x="755" y="130" width="275" height="425" rx="14" fill="white" fill-opacity="0.45" stroke="#CBD5E1" stroke-width="1.2" stroke-dasharray="8 4"/><text x="892.5" y="146" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#94A3B8" letter-spacing="1.8">OUTPUTS</text>
+<rect x="60" y="43.0" width="140" height="55" rx="9" fill="#FEF3C7" stroke="#D97706" stroke-width="1.6" filter="url(#shL)"/>
+<text x="130.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">119 Cochrane Public</text><text x="130.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">Health Review PDFs</text><text x="130.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#78350F">(manual download)</text>
+<rect x="226.66666666666666" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="296.66666666666663" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">CrossRef API</text>
+<rect x="393.3333333333333" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="463.3333333333333" y="63.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">PubMed / NCBI</text><text x="463.3333333333333" y="77.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">Entrez API</text>
+<rect x="560.0" y="43.0" width="140" height="55" rx="9" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.6" filter="url(#shL)"/>
+<text x="630.0" y="56.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">LLM Backends</text><text x="630.0" y="70.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">(Ollama · OpenAI</text><text x="630.0" y="84.0" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#4C1D95">· Google Gemini)</text>
+<rect x="60" y="160" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="64" cy="164" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="64" y="168" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">0</text>
+<text x="130.0" y="182.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">00_extract_metadata</text><text x="130.0" y="194.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">_and_references.ipynb</text>
+<rect x="185" y="240" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="189" cy="244" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="189" y="248" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">1</text>
+<text x="255.0" y="262.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">01_fetch_referenced</text><text x="255.0" y="274.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">_abstracts.ipynb</text>
+<rect x="310" y="320" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="314" cy="324" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="314" y="328" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">2</text>
+<text x="380.0" y="342.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">02_execute_pubmed</text><text x="380.0" y="354.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">_searches.ipynb</text>
+<rect x="435" y="400" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="439" cy="404" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="439" y="408" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">3</text>
+<text x="505.0" y="422.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">03_build_ground</text><text x="505.0" y="434.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">_truth.ipynb</text>
+<rect x="560" y="480" width="140" height="55" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.6" filter="url(#sh)"/>
+<circle cx="564" cy="484" r="11" fill="#3B82F6" stroke="white" stroke-width="1.8"/>
+<text x="564" y="488" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10.5" font-weight="700" fill="white">4</text>
+<text x="630.0" y="502.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">04_evaluate</text><text x="630.0" y="514.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#1E3A5F">_llms.ipynb</text>
+<rect x="770" y="160" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="173.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">review_metadata.csv</text><text x="892.5" y="187.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">categorized_references.csv</text><text x="892.5" y="201.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">search_strategies.csv</text>
+<rect x="770" y="240" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="253.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">referenced_paper_abstracts.csv</text><text x="892.5" y="267.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">doi_pmid_cache.csv</text><text x="892.5" y="281.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">crossref_matching_progress.csv</text>
+<rect x="770" y="320" width="245" height="55" rx="9" fill="#D1FAE5" stroke="#10B981" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="333.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">pubmed_excluded_abstracts.csv</text><text x="892.5" y="347.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">pubmed_search_results.csv</text><text x="892.5" y="361.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#065F46">pubmed_search_progress.csv</text>
+<rect x="770" y="400" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="420.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#991B1B">ground_truth_validation</text><text x="892.5" y="434.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#991B1B">_dataset.csv</text>
+<rect x="770" y="480" width="245" height="55" rx="9" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.6" filter="url(#shL)"/>
+<text x="892.5" y="500.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#991B1B">Data/results/</text><text x="892.5" y="514.5" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" font-weight="500" fill="#991B1B">step{N}_{model}_{variant}.csv</text>
+<path d="M 130.0,215 L 130.0,267.5 L 185,267.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 255.0,295 L 255.0,347.5 L 310,347.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 380.0,375 L 380.0,427.5 L 435,427.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<path d="M 505.0,455 L 505.0,507.5 L 560,507.5" fill="none" stroke="#3B82F6" stroke-width="1.2" marker-end="url(#aP)"/>
+<line x1="200" y1="187" x2="770" y2="187" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="325" y1="267" x2="770" y2="267" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="450" y1="347" x2="770" y2="347" stroke="#10B981" stroke-width="1.2" marker-end="url(#aC)"/>
+<line x1="575" y1="427" x2="770" y2="427" stroke="#EF4444" stroke-width="1.2" marker-end="url(#aK)"/>
+<line x1="700" y1="507" x2="770" y2="507" stroke="#EF4444" stroke-width="1.2" marker-end="url(#aK)"/>
+<path d="M 130.0,97.0 L 130.0,112.0 L 130.0,112.0 L 130.0,160" fill="none" stroke="#D97706" stroke-width="1.2" marker-end="url(#aI)"/>
+<path d="M 296.66666666666663,97.0 L 296.66666666666663,175 L 255.0,175 L 255.0,240" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 463.3333333333333,97.0 L 463.3333333333333,205 L 280.0,205 L 280.0,240" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 463.3333333333333,97.0 L 463.3333333333333,295 L 380.0,295 L 380.0,320" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<path d="M 630.0,97.0 L 630.0,455 L 630.0,455 L 630.0,480" fill="none" stroke="#7C3AED" stroke-width="1.2" marker-end="url(#aA)"/>
+<rect x="25" y="573" width="1005" height="55" rx="10" fill="white" fill-opacity="0.6" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="8 4"/>
+<rect x="40" y="588" width="15" height="15" rx="3.5" fill="#FEF3C7" stroke="#D97706" stroke-width="1.2"/>
+<text x="61" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Manual data input</text>
+<text x="61" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(Cochrane Library)</text>
+<rect x="235" y="588" width="15" height="15" rx="3.5" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.2"/>
+<text x="256" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">External APIs</text>
+<text x="256" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(CrossRef, PubMed, LLMs)</text>
+<rect x="430" y="588" width="15" height="15" rx="3.5" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.2"/>
+<text x="451" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Jupyter Notebooks</text>
+<text x="451" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(pipeline steps)</text>
+<rect x="625" y="588" width="15" height="15" rx="3.5" fill="#D1FAE5" stroke="#10B981" stroke-width="1.2"/>
+<text x="646" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Intermediate</text>
+<text x="646" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">CSV outputs</text>
+<rect x="820" y="588" width="15" height="15" rx="3.5" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/>
+<text x="841" y="594" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">Key outputs</text>
+<text x="841" y="606" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#475569">(ground truth + results)</text>
+</svg></div>
         </div>
     </div>
+    
+    <div class="help-text">Scroll to zoom | Drag to pan | Double-click to zoom in | Press 0 to reset | Press 1/2 to toggle views</div>
 
     <script>
         const container = document.getElementById('container');
         const wrapper = document.getElementById('wrapper');
+        const toggleBtns = document.querySelectorAll('.toggle-btn');
         
         let scale = 1;
         let translateX = 50;
-        let translateY = 50;
+        let translateY = 20;
         let isDragging = false;
         let startX, startY;
         
         const MIN_SCALE = 0.3;
         const MAX_SCALE = 4;
         const ZOOM_STEP = 0.15;
+        
+        // Toggle view
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                toggleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const view = btn.dataset.view;
+                document.querySelectorAll('.view-desc, .view-file').forEach(el => el.classList.remove('active'));
+                document.querySelector('.view-' + view).classList.add('active');
+            });
+        });
         
         function updateTransform(smooth = true) {
             wrapper.style.transition = smooth ? 'transform 0.3s ease-out' : 'transform 0.05s ease-out';
@@ -201,8 +358,15 @@
             if (e.key === '0' || e.key === 'Escape') {
                 scale = 1;
                 translateX = 50;
-                translateY = 50;
+                translateY = 20;
                 updateTransform();
+            }
+            // Toggle views with 1 and 2 keys
+            if (e.key === '1') {
+                toggleBtns[0].click();
+            }
+            if (e.key === '2') {
+                toggleBtns[1].click();
             }
         });
         
