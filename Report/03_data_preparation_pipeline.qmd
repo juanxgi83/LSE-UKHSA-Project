@@ -1,0 +1,657 @@
+---
+title: "Section 3: Data Preparation Pipeline"
+subtitle: "LLM Utility For Selection Of Health Policy Papers In Systematic Reviews"
+author: "LSE-UKHSA Capstone Project"
+date: "March 26, 2026"
+format:
+  pdf:
+    documentclass: article
+    papersize: a4
+    fontsize: 11pt
+    geometry:
+      - top=25mm
+      - bottom=25mm
+      - left=25mm
+      - right=25mm
+    toc: false
+    number-sections: true
+    number-depth: 3
+    colorlinks: true
+    linkcolor: "blue"
+    urlcolor: "blue"
+    fig-pos: "H"
+    keep-tex: false
+    header-includes: |
+      \usepackage{booktabs}
+      \usepackage{longtable}
+      \usepackage{float}
+      \usepackage{fancyhdr}
+      \usepackage{graphicx}
+      \usepackage{caption}
+      \captionsetup{font=small, labelfont=bf}
+      \pagestyle{fancy}
+      \fancyhf{}
+      \fancyhead[L]{\small Section 3: Data Preparation Pipeline}
+      \fancyhead[R]{\small LSE \& UKHSA}
+      \fancyfoot[C]{\thepage}
+      \renewcommand{\headrulewidth}{0.4pt}
+      \setcounter{section}{2}
+execute:
+  echo: false
+  warning: false
+  message: false
+jupyter: python3
+embed-resources: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.patheffects as pe
+from pathlib import Path
+
+# Resolve project root
+notebook_dir = Path.cwd()
+project_root = notebook_dir if (notebook_dir / "Data").exists() else notebook_dir.parent
+if not (project_root / "Data").exists():
+    project_root = Path(r"C:\Users\juanx\Documents\LSE-UKHSA Project")
+DATA_DIR = project_root / "Data"
+
+# Load datasets
+meta = pd.read_csv(DATA_DIR / "review_metadata.csv")
+refs = pd.read_csv(DATA_DIR / "categorized_references.csv")
+strat = pd.read_csv(DATA_DIR / "search_strategies.csv")
+abs_df = pd.read_csv(DATA_DIR / "referenced_paper_abstracts.csv")
+excl = pd.read_csv(DATA_DIR / "pubmed_excluded_abstracts.csv")
+gt = pd.read_csv(DATA_DIR / "ground_truth_validation_dataset.csv")
+
+# Colour palette (consistent with project visualisations)
+BLUE = "#3B82F6"
+GREEN = "#10B981"
+RED = "#EF4444"
+PURPLE = "#7C3AED"
+AMBER = "#D97706"
+SLATE = "#64748B"
+LIGHT_BLUE = "#DBEAFE"
+LIGHT_GREEN = "#D1FAE5"
+LIGHT_RED = "#FEE2E2"
+
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Segoe UI", "Arial", "Helvetica"],
+    "font.size": 10,
+    "axes.titlesize": 12,
+    "axes.labelsize": 10,
+    "figure.dpi": 200,
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+    "axes.grid": True,
+    "grid.alpha": 0.3,
+})
+```
+
+# Data Preparation Pipeline
+
+Evaluating the utility of large language models (LLMs) for systematic review screening requires a robust and reproducible ground truth dataset against which model predictions can be measured. This section describes the four-stage data preparation pipeline that transforms 119 Cochrane Public Health systematic review PDFs into a labelled validation dataset of 10,225 paper--review pairs. The pipeline is implemented across four Jupyter notebooks, each addressing a distinct stage: metadata and reference extraction from PDFs, bibliographic matching and abstract retrieval, execution of PubMed search strategies to identify excluded papers, and assembly of the final ground truth dataset. @fig-pipeline-overview provides a schematic overview of the complete pipeline.
+
+```{python}
+#| label: fig-pipeline-overview
+#| fig-cap: "Workflow map of the complete data pipeline, adapted from the project's interactive visualisation. The four data preparation stages (NB00--NB03, detailed in this section) cascade into NB04 (LLM evaluation, Section~4). Colour-coded boxes indicate manual data sources (amber), external APIs (purple), pipeline notebooks (blue), intermediate CSV outputs (green), and key outputs (red)."
+#| fig-width: 7.5
+#| fig-height: 5.5
+
+fig, ax = plt.subplots(figsize=(7.5, 5.5))
+ax.set_xlim(-0.3, 14.3)
+ax.set_ylim(-0.8, 10.5)
+ax.axis("off")
+
+# ── Extended palette (matching project workflow map) ──
+INP_BG, INP_BD, INP_TX = "#FEF3C7", "#D97706", "#78350F"
+API_BG, API_BD, API_TX = "#EDE9FE", "#7C3AED", "#4C1D95"
+NB_BG,  NB_BD,  NB_TX  = "#DBEAFE", "#3B82F6", "#1E3A5F"
+CSV_BG, CSV_BD, CSV_TX = "#D1FAE5", "#10B981", "#065F46"
+KEY_BG, KEY_BD, KEY_TX = "#FEE2E2", "#EF4444", "#991B1B"
+SEC_BD = "#CBD5E1"
+
+# ── Helper: rounded box with centred multi-line text ──
+def rbox(x, y, w, h, bg, bd, texts, tc, fs=8, fw="normal", lh=0.22):
+    p = mpatches.FancyBboxPatch(
+        (x, y), w, h, boxstyle="round,pad=0.06",
+        facecolor=bg, edgecolor=bd, linewidth=1.3, zorder=3)
+    ax.add_patch(p)
+    cy = y + h / 2
+    for i, t in enumerate(texts):
+        ty = cy + ((len(texts) - 1) / 2 - i) * lh
+        ax.text(x + w / 2, ty, t, ha="center", va="center",
+                fontsize=fs, fontweight=fw, color=tc, zorder=4)
+
+# ═══════════════ SECTION BACKGROUNDS ═══════════════
+for (sx, sy, sw, sh) in [
+    (0.3, 8.3, 8.8, 2.0),   # Input section
+    (0.3, -0.1, 8.8, 8.1),  # Pipeline section
+    (9.5, -0.1, 4.3, 8.1),  # Output section
+]:
+    sb = mpatches.FancyBboxPatch((sx, sy), sw, sh,
+        boxstyle="round,pad=0.08", facecolor="white", alpha=0.45,
+        edgecolor=SEC_BD, linewidth=0.8,
+        linestyle=(0, (6, 3)), zorder=0)
+    ax.add_patch(sb)
+
+ax.text(4.7, 10.1, "EXTERNAL INPUTS & DATA SOURCES", ha="center",
+        fontsize=6.5, fontweight="600", color="#94A3B8", zorder=1)
+ax.text(4.7, 7.8, "PIPELINE", ha="center",
+        fontsize=6.5, fontweight="600", color="#94A3B8", zorder=1)
+ax.text(11.65, 7.8, "OUTPUTS", ha="center",
+        fontsize=6.5, fontweight="600", color="#94A3B8", zorder=1)
+
+# ═══════════════ INPUT BOXES (top row) ═══════════════
+iw, ih, iy = 1.85, 0.9, 8.65
+ig = 0.35
+inp_xs = [0.6 + i * (iw + ig) for i in range(4)]
+inps = [
+    (inp_xs[0], ["Cochrane", "Library PDFs"],    INP_BG, INP_BD, INP_TX),
+    (inp_xs[1], ["CrossRef", "API"],             API_BG, API_BD, API_TX),
+    (inp_xs[2], ["PubMed", "Entrez API"],        API_BG, API_BD, API_TX),
+    (inp_xs[3], ["LLM", "Backends"],             API_BG, API_BD, API_TX),
+]
+for ix, texts, bg, bd, tc in inps:
+    rbox(ix, iy, iw, ih, bg, bd, texts, tc, fs=8, fw="600", lh=0.19)
+
+# ═══════════════ NOTEBOOK CASCADE ═══════════════
+nw, nh = 2.4, 0.85
+nb_x0, nb_y0, nb_dx, nb_dy = 0.8, 6.8, 1.4, 1.35
+nb_labs = [
+    ["Extract Metadata", "& References"],
+    ["Fetch Referenced", "Abstracts"],
+    ["Execute PubMed", "Searches"],
+    ["Build Ground", "Truth Dataset"],
+    ["Evaluate LLMs", "(Full Pipeline)"],
+]
+nb_xy = [(nb_x0 + i * nb_dx, nb_y0 - i * nb_dy) for i in range(5)]
+
+for i, ((nx, ny), labs) in enumerate(zip(nb_xy, nb_labs)):
+    rbox(nx, ny, nw, nh, NB_BG, NB_BD, labs, NB_TX, fs=8, fw="600", lh=0.19)
+    bx, by = nx + 0.12, ny + nh + 0.15
+    c = plt.Circle((bx, by), 0.22, facecolor=NB_BD,
+                    edgecolor="white", linewidth=1.5, zorder=5)
+    ax.add_patch(c)
+    ax.text(bx, by, str(i), ha="center", va="center",
+            fontsize=7, fontweight="bold", color="white", zorder=6)
+
+# ═══════════════ OUTPUT BOXES ═══════════════
+ow, oh, ox = 3.5, 0.85, 9.8
+outs = [
+    (nb_xy[0][1], ["Review metadata, references", "& search strategies (3 CSVs)"],
+     CSV_BG, CSV_BD, CSV_TX),
+    (nb_xy[1][1], ["Paper abstracts with PMIDs", "& DOI-PMID cache"],
+     CSV_BG, CSV_BD, CSV_TX),
+    (nb_xy[2][1], ["Excluded paper abstracts", "from PubMed searches"],
+     CSV_BG, CSV_BD, CSV_TX),
+    (nb_xy[3][1], ["Ground truth dataset", "(balanced & deduplicated)"],
+     KEY_BG, KEY_BD, KEY_TX),
+    (nb_xy[4][1], ["Evaluation metrics", "& model predictions"],
+     KEY_BG, KEY_BD, KEY_TX),
+]
+for oy, labs, bg, bd, tc in outs:
+    rbox(ox, oy, ow, oh, bg, bd, labs, tc, fs=7.5, fw="500", lh=0.18)
+
+# ═══════════════ ARROWS: NB → NB ═══════════════
+for i in range(4):
+    sx = nb_xy[i][0] + nw / 2
+    sy = nb_xy[i][1]
+    ex = nb_xy[i + 1][0] + nw / 2
+    ey = nb_xy[i + 1][1] + nh
+    ax.annotate("", xy=(ex, ey), xytext=(sx, sy),
+                arrowprops=dict(arrowstyle="-|>", color=NB_BD, lw=1.5),
+                zorder=2)
+
+# ═══════════════ ARROWS: NB → Output ═══════════════
+for i in range(5):
+    nx, ny = nb_xy[i]
+    my = ny + nh / 2
+    ax.annotate("", xy=(ox, my), xytext=(nx + nw, my),
+                arrowprops=dict(arrowstyle="-|>", color=outs[i][3], lw=1.1),
+                zorder=2)
+
+# ═══════════════ ARROWS: Input → NB ═══════════════
+def inp_arrow(ii, ni, col, xoff_e=0):
+    x1 = inps[ii][0] + iw / 2
+    y1 = iy
+    x2 = nb_xy[ni][0] + nw / 2 + xoff_e
+    y2 = nb_xy[ni][1] + nh
+    dx = x2 - x1
+    rad = 0.12 if dx > 0 else (-0.12 if dx < 0 else 0)
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                arrowprops=dict(arrowstyle="-|>", color=col, lw=1.0,
+                                connectionstyle=f"arc3,rad={rad}"),
+                zorder=2)
+
+inp_arrow(0, 0, INP_BD)               # Cochrane PDFs → NB0
+inp_arrow(1, 1, API_BD)               # CrossRef API  → NB1
+inp_arrow(2, 1, API_BD, xoff_e=0.35)  # PubMed API    → NB1
+inp_arrow(2, 2, API_BD)               # PubMed API    → NB2
+inp_arrow(3, 4, API_BD)               # LLM Backends  → NB4
+
+# ═══════════════ LEGEND ═══════════════
+leg = [
+    (INP_BG, INP_BD, "Manual data input"),
+    (API_BG, API_BD, "External APIs"),
+    (NB_BG,  NB_BD,  "Pipeline notebooks"),
+    (CSV_BG, CSV_BD, "Intermediate outputs"),
+    (KEY_BG, KEY_BD, "Key outputs"),
+]
+for j, (bg, bd, label) in enumerate(leg):
+    lx = 0.2 + j * 2.8
+    ly = -0.5
+    sq = mpatches.FancyBboxPatch((lx, ly), 0.25, 0.25,
+        boxstyle="round,pad=0.01", facecolor=bg, edgecolor=bd,
+        linewidth=1, zorder=3)
+    ax.add_patch(sq)
+    ax.text(lx + 0.4, ly + 0.12, label, fontsize=6.5, va="center",
+            color="#475569", zorder=4)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Source Data: Cochrane Public Health Reviews
+
+The pipeline begins with a corpus of 119 Cochrane systematic review PDFs from the Public Health group, manually downloaded from the Cochrane Library. These were selected because Cochrane reviews follow a highly standardised document structure---with clearly delineated sections for abstracts, references, and search strategies---making them amenable to automated extraction. Each PDF is named by its Cochrane CD number (e.g., `CD001047.pdf`), which serves as the primary identifier throughout the pipeline. The reviews span publication years from 1998 to 2025, covering topics such as tobacco control, nutrition interventions, workplace health, and communicable disease prevention. Of the 119 PDFs, 118 are full reviews and one is a withdrawn review (excluded from downstream analysis). After version deduplication---where multiple publications of the same CD-numbered review are resolved to the latest version---113 unique review lineages are represented, with version numbers ranging from 1 to 6. This version-tracking mechanism ensures that when a review has been updated (e.g., CD001047.pub2 superseding CD001047), only the most recent version contributes references and search strategies to the ground truth.
+
+## Stage 1: PDF Metadata and Reference Extraction (NB00) {#sec-nb00}
+
+The first notebook extracts three categories of structured information from each PDF using PyMuPDF (fitz), a high-performance PDF text extraction library. Each PDF is processed in under 200 milliseconds, making the full extraction across all 119 documents feasible in under a minute.
+
+### Metadata Extraction
+
+For each review, the pipeline extracts the DOI (derived from the PDF filename, which follows the Cochrane CD-number convention), publication title, authors, review type (review, protocol, or withdrawn), and publication year. Publication years are parsed from the standardised citation line (*"Cochrane Database of Systematic Reviews YYYY, Issue N"*) on the first page, providing a reliable temporal anchor for downstream date-based filtering. Critically, the pipeline also extracts the **full structured abstract**, which in Cochrane reviews comprises up to seven named sections: Background, Objectives, Search Methods, Selection Criteria, Data Collection and Analysis, Main Results, and Authors' Conclusions. These structured abstracts, averaging approximately 1,500 characters each, serve as the review context provided to LLMs during screening evaluation in later stages of the project.
+
+Abstract extraction required careful handling of PDF rendering artefacts. A dedicated function strips page-break debris (copyright footers, Cochrane Library headers), resolves PDF ligature characters (ff, fi, fl, ffi, ffl) to their ASCII equivalents, and reassembles the text into clean *"Section: content"* blocks. Of the 119 PDFs processed, 117 yielded usable abstracts (the two failures correspond to the withdrawn review and one protocol document with non-standard formatting).
+
+### Reference Extraction
+
+Cochrane reviews organise their references into clearly labelled sections: *References to Studies Included*, *References to Studies Excluded*, *References to Studies Awaiting Classification*, *References to Ongoing Studies*, *Additional References*, and *Other Published Versions*. The extraction algorithm locates these section headings via regular expression matching and then parses individual citations within each section using a line-oriented approach that detects author--initial patterns to identify citation boundaries.
+
+```{python}
+#| label: fig-reference-categories
+#| fig-cap: "Distribution of 17,368 extracted references across Cochrane categorisation types. 'Included' and 'excluded' categories together represent the primary screening decisions, while additional references, awaiting classification, ongoing studies, and other versions reflect supplementary or pending citations."
+#| fig-width: 6.5
+#| fig-height: 3.2
+
+cat_counts = refs["category"].value_counts()
+categories = ["included", "excluded", "additional", "awaiting", "ongoing", "other_versions"]
+labels = ["Included\nStudies", "Excluded\nStudies", "Additional\nReferences",
+          "Awaiting\nClassification", "Ongoing\nStudies", "Other\nVersions"]
+colors = [GREEN, RED, BLUE, AMBER, PURPLE, SLATE]
+values = [cat_counts.get(c, 0) for c in categories]
+
+fig, ax = plt.subplots(figsize=(6.5, 3.2))
+bars = ax.bar(range(len(categories)), values, color=colors, width=0.65, edgecolor="white", linewidth=0.5)
+
+for bar, val in zip(bars, values):
+    pct = val / sum(values) * 100
+    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 150,
+            f"{val:,}\n({pct:.1f}%)", ha="center", va="bottom", fontsize=8, color=SLATE)
+
+ax.set_xticks(range(len(categories)))
+ax.set_xticklabels(labels, fontsize=8)
+ax.set_ylabel("Number of References")
+ax.set_ylim(0, max(values) * 1.25)
+ax.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+plt.show()
+```
+
+Each parsed citation yields structured fields: study identifier (first author and year), full author list, title, DOI (when embedded in the reference text), and PubMed ID (PMID). Across all 119 PDFs, the pipeline extracted **17,368 references** from 113 reviews (six PDFs lacked a parseable reference section, typically protocols or withdrawn reviews). The mean number of references per review was 154, with a standard deviation of 138, reflecting considerable variation in review scope: the smallest review contained 14 references while the largest contained 911. @fig-reference-categories shows the distribution across reference categories.
+
+### Search Strategy Extraction and Translation {#sec-search-strategy}
+
+A key innovation in this pipeline is the automated extraction and translation of search strategies from Cochrane PDFs. Systematic reviews in the Cochrane Library typically document their database search strategies in appendices, most commonly written in Ovid MEDLINE syntax. The extraction algorithm applies four hierarchical detection patterns:
+
+1. **Numbered search blocks** following a database header (e.g., *"Ovid MEDLINE"*), which is the most common format.
+2. **Hit-count format** where each line includes result counts in parentheses (e.g., *"1 randomized controlled trial/ (587233)"*).
+3. **Appendix-style** strategies under *"Appendix N: MEDLINE"* headers.
+4. **Header-less Ovid blocks** detected by the density of Ovid field tags (`.tw.`, `.ti.`, `.sh.`, `exp`) in numbered line sequences.
+
+When no structured strategy is found, the pipeline falls back to extracting a **narrative description** from the *Search Methods* section of the abstract, though these cannot be translated into executable queries.
+
+Once extracted, Ovid MEDLINE strategies are translated to PubMed syntax through a rule-based translator that handles: MeSH term mapping (including exploded and non-exploded headings), field tag conversion (e.g., `.tw.` → `[tiab]`, `.sh.` → `[Mesh]`), truncation and wildcard operators, Boolean logic, adjacency operators (approximated as `AND`), line-reference resolution (where numbered lines combine earlier search lines), and limit commands (e.g., `limit to humans` → `"humans"[Mesh]`). A quality gate rejects spurious translations---short queries lacking field tags, wildcards, or quoted phrases are filtered out to prevent author names or other non-search text from being treated as valid queries.
+
+```{python}
+#| label: fig-strategy-translation
+#| fig-cap: "Outcome of search strategy extraction and Ovid-to-PubMed translation across 126 strategy entries from 119 PDFs. Successfully translated queries were used in Stage 3 to identify excluded papers."
+#| fig-width: 6.5
+#| fig-height: 3
+
+import re
+
+def classify_strategy(row):
+    notes = str(row["translation_notes"])
+    query = str(row.get("pubmed_query", ""))
+    if notes == "narrative_only":
+        return "Narrative only\n(no structured query)"
+    elif notes == "filtered_not_a_query":
+        return "Filtered\n(not a valid query)"
+    elif notes == "no_numbered_lines":
+        return "Parse failure\n(no numbered lines)"
+    elif notes == "empty_strategy":
+        return "Empty strategy"
+    elif len(query) > 0 and query != "nan":
+        return "Successfully\ntranslated"
+    else:
+        return "Other failure"
+
+strat["outcome"] = strat.apply(classify_strategy, axis=1)
+outcome_counts = strat["outcome"].value_counts()
+
+order = [
+    "Successfully\ntranslated",
+    "Narrative only\n(no structured query)",
+    "Filtered\n(not a valid query)",
+    "Parse failure\n(no numbered lines)",
+    "Other failure",
+]
+order = [o for o in order if o in outcome_counts.index]
+values = [outcome_counts[o] for o in order]
+colors_strat = [GREEN, SLATE, AMBER, RED, PURPLE][:len(order)]
+
+fig, ax = plt.subplots(figsize=(6.5, 3))
+bars = ax.barh(range(len(order)), values, color=colors_strat, height=0.6, edgecolor="white")
+
+for bar, val in zip(bars, values):
+    pct = val / sum(values) * 100
+    ax.text(bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
+            f"{val} ({pct:.1f}%)", va="center", fontsize=8.5, color=SLATE)
+
+ax.set_yticks(range(len(order)))
+ax.set_yticklabels(order, fontsize=8.5)
+ax.set_xlabel("Number of Strategies")
+ax.set_xlim(0, max(values) * 1.35)
+ax.invert_yaxis()
+ax.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+plt.show()
+```
+
+Of the 126 extracted strategy entries, **42 were successfully translated** into executable PubMed queries covering 38 unique reviews. The majority of failures (67 entries, 53.2%) were narrative-only descriptions lacking structured search syntax, reflecting the reality that not all Cochrane reviews include their full search strategy in the published PDF. An additional 15 entries (11.9%) were filtered by the quality gate as false positives.
+
+### Output Artefacts
+
+Stage 1 produces three CSV files that serve as inputs to subsequent stages: `review_metadata.csv` (119 rows, one per PDF), `categorized_references.csv` (17,368 rows), and `search_strategies.csv` (126 rows with 42 usable PubMed queries).
+
+## Stage 2: Bibliographic Matching and Abstract Retrieval (NB01) {#sec-nb01}
+
+The second stage resolves the 17,368 extracted reference strings to bibliographic database records and retrieves abstracts for subsequent LLM evaluation. This is a non-trivial task: PDF-extracted references suffer from encoding artefacts, inconsistent formatting, and missing identifiers. The pipeline employs a five-phase cascading strategy to maximise match rate.
+
+### Phase 1: Direct Identifier Extraction
+
+Regular expressions are applied to each reference string to extract DOIs (matching the pattern `10.NNNN/...`) and PMIDs (matching `PMID: NNNNNNNN` variations) that are already embedded in the citation text. This phase is fast and high-precision but low-recall, since most Cochrane references---particularly older ones---do not include machine-readable identifiers in their citation text.
+
+### Phase 2: CrossRef Bibliographic Matching
+
+For the majority of references lacking identifiers, the pipeline queries the CrossRef API (`query.bibliographic` endpoint), which indexes over 130 million DOIs and supports fuzzy bibliographic matching. Each reference's title and author information is submitted as a search query, and the top 10 candidates are scored using a weighted fuzzy matching algorithm (RapidFuzz library). A candidate is accepted only if its **title similarity score** exceeds 75% (token-sorted ratio) and, when author information is available, the **author similarity** meets a minimum threshold of 30%. Matches below these thresholds are rejected to avoid false positives.
+
+To handle partial title matches---common when PDF extraction truncates or corrupts long titles---the pipeline implements a three-tier search strategy: (1) full bibliographic reference string, (2) title-only search, and (3) short-title search using text before the first colon or dash.
+
+### Phase 3: DOI-to-PMID Conversion
+
+DOIs obtained from Phases 1 and 2 are converted to PubMed identifiers (PMIDs) via the NCBI E-utilities API (`esearch` with DOI filter), producing a `doi_pmid_cache.csv` that is reused by later pipeline stages. This conversion step is essential because PubMed is the primary source for structured abstracts in the biomedical literature, and PMIDs enable efficient batch retrieval in Phase 4. The cache file also prevents redundant API lookups when the pipeline is re-executed.
+
+### Phase 4: Abstract Retrieval with Multi-Source Fallback
+
+Abstracts are retrieved through three progressively broader sources:
+
+- **PubMed (primary)**: Batch fetches of 200 records per request via `efetch`, recovering structured abstracts for the majority of matched papers.
+- **CrossRef (fallback)**: For papers with a DOI but no PubMed abstract---common for non-biomedical journals or recent publications---the pipeline queries CrossRef's work endpoint and strips JATS/HTML markup from the returned abstract.
+- **PubMed title search (last resort)**: For references still lacking abstracts after Phases 1--3, the pipeline searches PubMed directly by title with fuzzy validation, catching papers that exist in PubMed but were missed by DOI-based lookups (particularly older papers without DOI assignments).
+
+```{python}
+#| label: fig-matching-methods
+#| fig-cap: "Distribution of bibliographic matching methods for 11,435 successfully resolved references and abstract source breakdown for the 10,945 references with usable abstracts (>50 characters)."
+#| fig-width: 6.5
+#| fig-height: 3.5
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.5, 3.5))
+
+# Left: Match methods
+methods = abs_df["match_method"].value_counts()
+method_labels = {"crossref": "CrossRef\nfuzzy match", "pubmed_title_search": "PubMed\ntitle search", "doi_direct": "Direct DOI\nextraction"}
+method_names = [method_labels.get(m, m) for m in methods.index]
+method_colors = [BLUE, PURPLE, GREEN][:len(methods)]
+
+wedges, texts, autotexts = ax1.pie(
+    methods.values, labels=method_names, colors=method_colors,
+    autopct=lambda p: f"{p:.1f}%", startangle=90,
+    textprops={"fontsize": 8}, pctdistance=0.7,
+    wedgeprops={"edgecolor": "white", "linewidth": 1.5}
+)
+for t in autotexts:
+    t.set_fontsize(7.5)
+    t.set_color("white")
+    t.set_fontweight("bold")
+ax1.set_title("Match Method", fontsize=10, fontweight="bold", pad=10)
+
+# Right: Abstract sources
+has_abs = abs_df[abs_df["abstract"].notna() & (abs_df["abstract"].str.len() > 50)]
+sources = has_abs["abstract_source"].value_counts()
+source_labels = {"pubmed": "PubMed", "pubmed_title_search": "PubMed\n(title search)", "crossref": "CrossRef"}
+source_names = [source_labels.get(s, s) for s in sources.index]
+source_colors = [GREEN, PURPLE, AMBER][:len(sources)]
+
+wedges2, texts2, autotexts2 = ax2.pie(
+    sources.values, labels=source_names, colors=source_colors,
+    autopct=lambda p: f"{p:.1f}%\n({int(p*sum(sources.values)/100):,})", startangle=90,
+    textprops={"fontsize": 8}, pctdistance=0.65,
+    wedgeprops={"edgecolor": "white", "linewidth": 1.5}
+)
+for t in autotexts2:
+    t.set_fontsize(7)
+    t.set_color("white")
+    t.set_fontweight("bold")
+ax2.set_title("Abstract Source", fontsize=10, fontweight="bold", pad=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Deduplication
+
+Before querying external APIs, references are deduplicated by creating normalised signatures composed of the first author's surname, publication year, and the first 50 characters of the title. This reduces the 17,368 raw references to a smaller set of unique citations, avoiding redundant API calls for studies referenced by multiple reviews. After matching, the results are re-expanded to all original (study ID, review DOI) pairs to preserve the many-to-many relationship between papers and reviews.
+
+### Results
+
+The matching pipeline resolved **11,435 references** (65.8% of the total) to bibliographic records. CrossRef fuzzy matching was the dominant method, resolving 10,277 references (89.9%), followed by PubMed title search with 1,145 (10.0%), and direct DOI extraction with 13 (0.1%). Of these matched references, **10,945 had usable abstracts** (>50 characters): 9,097 from PubMed, 1,145 from PubMed title search, and 703 from CrossRef. The multi-source fallback strategy thus recovered an additional 1,848 abstracts that would have been lost with a PubMed-only approach.
+
+## Stage 3: PubMed Search Execution and Excluded Paper Identification (NB02) {#sec-nb02}
+
+A complete ground truth dataset requires not only papers that reviewers included (label=1) but also papers that the search strategy retrieved but reviewers chose to exclude (label=0). Stage 3 executes the translated PubMed search queries from @sec-search-strategy against the PubMed API and identifies papers appearing in search results but absent from any Cochrane review's reference list.
+
+### Query Execution
+
+After version deduplication and deduplication of identical query strings, 40 unique PubMed queries were executed via the NCBI Entrez API. Each query was submitted with `retmax=100,000` to retrieve comprehensive result sets, and results were sorted by PubMed relevance ranking. The search was rate-limited to 10 requests per second (using an NCBI API key) and included robust retry logic with exponential backoff to handle transient API failures. Query lengths varied considerably, from concise single-concept searches to complex multi-line Boolean expressions exceeding 3,000 characters, reflecting the diversity of search strategy complexity across Cochrane reviews.
+
+### Known-Paper Exclusion
+
+To partition search results into included and excluded sets, the pipeline constructs a comprehensive set of "known PMIDs"---papers already referenced in any Cochrane review---by taking the union of three sources: PMIDs extracted directly from reference text (NB00), PMIDs from CrossRef matching (NB01), and the DOI-to-PMID cache (NB01). Any PMID appearing in search results that is also in this known set is classified as a Cochrane-referenced paper; all remaining PMIDs are classified as excluded.
+
+### Temporal Filtering
+
+Papers published after the corresponding review's publication year are removed, since they could not have been screened by the original reviewers. Publication years for reviews are taken from the metadata extracted in NB00, while paper publication years come from PubMed records fetched in this stage. This prevents anachronistic entries from contaminating the excluded set and ensures that the ground truth faithfully reflects the decision space available to human reviewers at the time each review was conducted.
+
+### Proportional Sampling
+
+To maintain a realistic class balance, the pipeline applies proportional sampling rather than a fixed cap on excluded papers. For each review, the number of excluded papers retained is set to four times the number of included papers (targeting an 80%/20% excluded/included split), with the most PubMed-relevant papers prioritised. This mirrors the real-world screening scenario where excluded papers substantially outnumber included ones.
+
+### Results
+
+Across the 40 executed queries, the pipeline retrieved a total of **9,767 excluded paper--review pairs** spanning 34 reviews, after temporal filtering and proportional sampling. Abstracts were batch-fetched from PubMed for all excluded PMIDs.
+
+## Stage 4: Ground Truth Assembly and Validation (NB03) {#sec-nb03}
+
+The final stage merges the included and excluded paper sets, joins them with review context (title and structured abstract from NB00), and performs rigorous quality assurance before saving the validation dataset.
+
+### Label Assignment
+
+The labelling logic follows a deliberately conservative definition:
+
+- **Included (label=1)**: *All* papers referenced in any Cochrane review, regardless of their internal categorisation (included studies, excluded studies, awaiting classification, or ongoing). The rationale is that if a human reviewer referenced the paper, it was deemed relevant enough to warrant consideration.
+- **Excluded (label=0)**: Papers retrieved by the review's PubMed search strategy but *not* referenced in any Cochrane review. These represent true negatives---papers the search surfaced but reviewers did not select.
+
+This design avoids the common pitfall of conflating Cochrane's *"excluded studies"* category (which contains papers that were fully screened and then rejected at the full-text stage) with papers never considered. Our excluded set consists exclusively of papers that were never referenced at all, providing a cleaner negative signal.
+
+### Review Context Enrichment
+
+Each paper--review pair is enriched with the review's full structured abstract, and two specific sections---**Objectives** and **Selection Criteria**---are extracted via regex parsing for downstream prompt engineering. These sections are particularly informative for LLM screening, as they directly specify what types of studies the review seeks to identify, the population of interest, the interventions under consideration, and the outcome measures of relevance. This granular context extraction enables the evaluation framework (described in subsequent sections) to test different levels of review context provision to the LLM.
+
+### Filtering to Usable Reviews
+
+Not all 113 reviews yield usable evaluation data. A review is retained in the final dataset only if it has (1) both included *and* excluded papers (reviews with only one class offer no discriminative signal), and (2) a meaningful review abstract (>100 characters). Additionally, the three reviews with the lowest exclusion percentages are dropped to ensure that no review's label distribution is so extreme as to trivially inflate accuracy. After filtering, **30 reviews** remain.
+
+```{python}
+#| label: fig-ground-truth-composition
+#| fig-cap: "Composition of the final ground truth validation dataset: (a) overall label distribution showing the 3.5:1 excluded-to-included ratio, and (b) per-review breakdown sorted by total papers, illustrating the variation in review-level dataset sizes."
+#| fig-width: 6.8
+#| fig-height: 4.5
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.8, 4.5),
+                                gridspec_kw={"width_ratios": [1, 2]})
+
+# (a) Overall distribution
+incl_n = (gt["label"] == 1).sum()
+excl_n = (gt["label"] == 0).sum()
+total_n = len(gt)
+
+wedges, texts, autotexts = ax1.pie(
+    [incl_n, excl_n],
+    labels=[f"Included\n(label=1)", f"Excluded\n(label=0)"],
+    colors=[GREEN, RED],
+    autopct=lambda p: f"{int(p * total_n / 100):,}\n({p:.1f}%)",
+    startangle=90, textprops={"fontsize": 8.5},
+    pctdistance=0.55,
+    wedgeprops={"edgecolor": "white", "linewidth": 2}
+)
+for t in autotexts:
+    t.set_fontsize(7.5)
+    t.set_fontweight("bold")
+    t.set_color("white")
+ax1.set_title("(a) Overall Label\nDistribution", fontsize=10, fontweight="bold")
+ax1.text(0, -1.35, f"Total: {total_n:,} pairs\nacross 30 reviews",
+         ha="center", fontsize=8, color=SLATE)
+
+# (b) Per-review breakdown
+counts = gt.groupby(["review_doi", "label"]).size().unstack(fill_value=0)
+counts.columns = ["excluded", "included"]
+counts["total"] = counts["included"] + counts["excluded"]
+counts = counts.sort_values("total", ascending=True)
+
+# Shorten DOI labels for readability
+short_labels = [d.replace("10.1002/14651858.", "").replace(".pub", "v")
+                if "14651858" in str(d) else str(d)[:12]
+                for d in counts.index]
+
+y_pos = range(len(counts))
+ax2.barh(y_pos, counts["included"], color=GREEN, height=0.7,
+         label=f"Included ({incl_n:,})", edgecolor="white", linewidth=0.3)
+ax2.barh(y_pos, counts["excluded"], left=counts["included"], color=RED,
+         height=0.7, label=f"Excluded ({excl_n:,})", edgecolor="white", linewidth=0.3)
+
+ax2.set_yticks(y_pos)
+ax2.set_yticklabels(short_labels, fontsize=5.5, fontfamily="monospace")
+ax2.set_xlabel("Number of Papers", fontsize=9)
+ax2.set_title("(b) Per-Review Breakdown", fontsize=10, fontweight="bold")
+ax2.legend(fontsize=8, loc="lower right", framealpha=0.9)
+ax2.spines[["top", "right"]].set_visible(False)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Contamination Checks
+
+A critical concern when constructing binary classification datasets from heterogeneous sources is **label leakage**: a paper that should be labelled as included (because it appears in a Cochrane review) may inadvertently appear in the excluded set. The pipeline performs six independent contamination tests:
+
+1. **PMID overlap**: checks whether any excluded paper's PMID appears in the included set.
+2. **DOI overlap**: checks for shared DOIs between the two sets.
+3. **Exact title match**: compares normalised (lowercase, punctuation-stripped) titles.
+4. **Fuzzy title match**: applies RapidFuzz string similarity ($\geq$95% threshold) within the same review.
+5. **First-author and year match**: flags papers sharing the same first author surname and publication year within the same review.
+6. **Abstract near-duplicate**: computes Jaccard similarity on word sets ($\geq$0.85 threshold) to catch semantically identical abstracts with different metadata.
+
+Each flagged paper is then inspected to determine whether it represents a genuine leak (same paper appearing in both sets) or a false positive (different papers with similar metadata). Genuine leaks are removed from the excluded set before the final dataset is saved. This multi-layered validation ensures the integrity of the ground truth labels.
+
+```{python}
+#| label: tbl-pipeline-summary
+#| tbl-cap: "Summary statistics for key intermediate and output artefacts across the four pipeline stages."
+
+summary_data = {
+    "Stage": [
+        "NB00: PDF Extraction",
+        "NB00: PDF Extraction",
+        "NB00: PDF Extraction",
+        "NB01: Abstract Fetch",
+        "NB01: Abstract Fetch",
+        "NB02: PubMed Search",
+        "NB02: PubMed Search",
+        "NB03: Ground Truth",
+        "NB03: Ground Truth",
+        "NB03: Ground Truth",
+    ],
+    "Artefact": [
+        "Review metadata records",
+        "Categorised references",
+        "Translated search queries",
+        "Matched references (with DOI/PMID)",
+        "References with abstracts (>50 chars)",
+        "PubMed queries executed",
+        "Excluded paper–review pairs",
+        "Total labelled pairs",
+        "Included papers (label=1)",
+        "Excluded papers (label=0)",
+    ],
+    "Count": [
+        f"{len(meta):,}",
+        f"{len(refs):,}",
+        "42",
+        f"{len(abs_df):,}",
+        f"{(abs_df['abstract'].notna() & (abs_df['abstract'].str.len() > 50)).sum():,}",
+        "40",
+        f"{len(excl):,}",
+        f"{len(gt):,}",
+        f"{(gt['label']==1).sum():,}",
+        f"{(gt['label']==0).sum():,}",
+    ],
+}
+summary_df = pd.DataFrame(summary_data)
+
+# Render as formatted markdown table
+from IPython.display import Markdown
+lines = ["| Stage | Artefact | Count |", "|:---|:---|---:|"]
+for _, row in summary_df.iterrows():
+    lines.append(f"| {row['Stage']} | {row['Artefact']} | {row['Count']} |")
+Markdown("\n".join(lines))
+```
+
+### Final Dataset Structure
+
+The output file `ground_truth_validation_dataset.csv` contains 10,225 rows, each representing a paper--review pair with the following fields: review DOI, review title, review abstract (full structured text), review objectives, review selection criteria, paper ID (PMID where available), paper title, paper abstract, binary label (1=included, 0=excluded), and source provenance. The dataset covers **30 Cochrane Public Health reviews** and contains **2,265 included papers** (22.2%) and **7,960 excluded papers** (77.8%), yielding an excluded-to-included ratio of approximately 3.5:1. This ratio reflects the inherent class imbalance of real-world systematic review screening, where the vast majority of retrieved papers are ultimately excluded.
+
+## Design Decisions and Limitations
+
+Several deliberate design decisions shape the pipeline and its outputs.
+
+**Conservative inclusion labelling.** All papers referenced in a Cochrane review---including those in the *"excluded studies"* and *"awaiting classification"* categories---are labelled as included. This broadens the positive class but ensures that relevant papers are not missed, which is appropriate for a task where recall is paramount.
+
+**Ovid-to-PubMed translation fidelity.** The search strategy translator approximates certain Ovid-specific operators (adjacency, proximity) using Boolean `AND`, which broadens recall at the expense of precision. Some queries may therefore retrieve more papers than the original Ovid search, potentially introducing slightly more noise into the excluded set.
+
+**Coverage limitations.** Of the 119 PDFs, only 42 yielded translatable search strategies, meaning the excluded paper set is derived from a subset of 30 reviews. Reviews with narrative-only search descriptions could not contribute excluded papers, limiting the diversity of the evaluation corpus.
+
+**Abstract availability.** Approximately 34% of extracted references could not be matched to a database record with an abstract. These unmatchable references---often grey literature, book chapters, or very old publications---are excluded from the ground truth, potentially introducing a bias toward more recent journal articles indexed in PubMed or CrossRef.
+
+**API rate limits and reproducibility.** The pipeline makes thousands of API calls to CrossRef, PubMed, and NCBI services. While results are cached in intermediate CSV files for reproducibility, the underlying databases are continuously updated, meaning re-execution at a different point in time could yield marginally different match rates or abstract content.
+
+Despite these limitations, the resulting dataset of 10,225 labelled paper--review pairs across 30 systematically prepared reviews provides a rigorous and well-validated foundation for evaluating LLM screening performance. The multi-stage design with intermediate checkpoints (CSV files between notebooks) ensures reproducibility and allows individual stages to be re-executed independently as data sources or extraction methods improve.
